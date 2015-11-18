@@ -34,7 +34,7 @@ struct RedNeuronal {
 
 impl RedNeuronal
 {
-	fn new(entradas:i32, ocultas:i32, salidas:i32, tasa:f32) -> RedNeuronal
+	fn new(entradas:i32, capasOcultas:i32, ocultas:i32, salidas:i32, tasa:f32) -> RedNeuronal
 	{
 		// creamos la red
 	    let mut nn = Vec::new();
@@ -47,33 +47,43 @@ impl RedNeuronal
 	    	nn[0].push( Neuron{pesos:vec![x], error:0.0, salida:1.0} );
 	    }
 
-	    // creamos la capa oculta
-	    nn.push(Vec::new());
-	    for i in 0..ocultas
+	    // creamos la capa(s) oculta(s)
+	    for c in 0..capasOcultas
 	    {
-	    	let mut pesos = vec![];
-	    	for j in 0..entradas
-	    	{
-	    		let x = rand::random::<f32>();
-	    		pesos.push(x);
-	    	}
-	    	nn[1].push( Neuron{pesos:pesos, error:0.0, salida:1.0} );
-	    }
+	    	//println!("capa oculta {}", c);
+		    nn.push(Vec::new());
+		    for i in 0..ocultas
+		    {
+		    	let mut pesos = vec![];
+		    	let entradasACapa = nn[nn.len()-2].len();
+		    	//println!("entradas {}", entradasACapa);
+		    	for j in 0..entradasACapa
+		    	{
+		    		//println!("peso {}", j);
+		    		let x = rand::random::<f32>();
+		    		pesos.push(x);
+		    	}
+		    	let capaAct = nn.len()-1;
+		    	nn[capaAct].push( Neuron{pesos:pesos, error:0.0, salida:1.0} );
+		    }
+		}
 
 	    // creamos la capa de salida
 	    nn.push(Vec::new());
 	    for i in 0..salidas
 	    {
 	    	let mut pesos = vec![];
-	    	for j in 0..ocultas
+	    	let entradasACapa = nn[nn.len()-2].len();
+	    	for j in 0..entradasACapa
 	    	{
 	    		let x = rand::random::<f32>();
 	    		pesos.push(x);
 	    	}
-	    	nn[2].push( Neuron{pesos:pesos, error:0.0, salida:1.0} );
+	    	let capaAct = nn.len()-1;
+	    	nn[capaAct].push( Neuron{pesos:pesos, error:0.0, salida:1.0} );
 	    }
 
-	    let mut red = RedNeuronal{ capas: nn, tasaAprendizaje: tasa };
+	    let mut red = RedNeuronal{ capas: nn, tasaAprendizaje: tasa};
 
 	    return red;
 	}
@@ -213,12 +223,14 @@ fn main()
 
 	let entradas = ent[0].len() as i32;
 	let salidas = sal[0].len() as i32;
-	let ocultas = 5;
+	let neuronasOcultas = 5;
+	let capasOcultas = 1;
 	let epocas = 200000;
 
-	let mut nn = RedNeuronal::new(entradas, ocultas, salidas, 0.2);
+	let mut nn = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, 0.2);
 
 	// Salidas sin entrenar
+	println!("Salidas antes de entrenar:");
 	nn.ejecutar(&ent[0]);
 	nn.printSalida();
 	nn.ejecutar(&ent[1]);
@@ -227,6 +239,7 @@ fn main()
 	nn.entrenarBackPropagation(&ent, &sal, epocas);
 	
 	// salidas entrenadas
+	println!("Salidas despues de entrenar:");
 	nn.ejecutar(&ent[0]);
 	nn.printSalida();
 	nn.ejecutar(&ent[1]);
