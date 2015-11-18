@@ -1,0 +1,7 @@
+[package]
+name = "redneuronal"
+version = "0.0.1"
+authors = ["Luis Alberto Segura Delgado"]
+
+[dependencies]
+rand = "*" # Or a specific version
