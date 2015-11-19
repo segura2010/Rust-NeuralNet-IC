@@ -1,6 +1,6 @@
 
 // Compilar y ejecutar con "cargo run"
-// Compilar con "cargo build"
+// Compilar con "cargo build --release"
 // Ejecutar con "./target/debud/redneuronal"
 
 extern crate rand;
@@ -272,11 +272,68 @@ fn main()
 	// Lectura de ficheros
 	let mut file=File::open("data/train_images").unwrap();
     let mut buf = [0; 4]; // buffer de 4 bytes
+    
+    // numero magico
     file.read(&mut buf); // leemos 4 bytes
     let mut p = invertir(&mut buf); // invertimos a bigendian
     let lens: i32 = unsafe { mem::transmute(p) }; // tranformamos a entero 32 bits
     println!("{}", lens);
-    
 
+    // numero imagenes
+    file.read(&mut buf); // leemos 4 bytes
+    let numImagenes: i32 = unsafe { mem::transmute(invertir(&mut buf)) }; // tranformamos a entero 32 bits
+    println!("{}", numImagenes);
+
+    // numero de filas y columnas
+    file.read(&mut buf); // leemos 4 bytes
+    let filas: i32 = unsafe { mem::transmute(invertir(&mut buf)) }; // tranformamos a entero 32 bits
+    println!("{}", filas);
+
+    file.read(&mut buf); // leemos 4 bytes
+    let columnas: i32 = unsafe { mem::transmute(invertir(&mut buf)) }; // tranformamos a entero 32 bits
+    println!("{}", columnas);
+    
+    println!("Cargando imagenes ({})", numImagenes);
+    // leemos las imagenes
+    let mut imagenes: Vec< Vec<u8> > = vec![];
+    let mut bufpixel = [0; 1]; // buffer de 4 bytes
+    let pixels = (filas*columnas);
+    for imagen in 0..numImagenes
+    {	//println!("{}", imagen);
+    	imagenes.push(Vec::new());
+	    for i in 0..pixels
+	    {
+	    	//for j in 0..columnas
+	    	//{
+	    		file.read(&mut bufpixel); // leemos 4 bytes
+	    		//let pixel: u8 = bufpixel[0]; //unsafe { mem::transmute(bufpixel) };
+	    		//println!("{}", pixel);
+	    		let ultima = imagenes.len() - 1;
+	    		imagenes[ultima].push(bufpixel[0]);
+	    	//}
+	    }
+	}
+
+	println!("Cargando etiquetas ({})", numImagenes);
+	// Leemos las etiquetas
+	let mut file=File::open("data/train_labels").unwrap();
+	// saltamos numero magico y de imagenes
+	file.read(&mut buf);
+	file.read(&mut buf);
+	// leemos las etiquetas de las imagenes
+    let mut etiquetas: Vec<u8> = vec![];
+    let mut label = [0; 1]; // buffer de 4 bytes
+    for imagen in 0..numImagenes
+    {	//println!("{}", imagen);
+		file.read(&mut label); // leemos 4 bytes
+		//let pixel: u8 = bufpixel[0]; //unsafe { mem::transmute(bufpixel) };
+		//println!("{}", pixel);
+		let ultima = imagenes.len() - 1;
+		etiquetas.push(label[0]);
+	}
 
 }
+
+
+
+
