@@ -6,6 +6,10 @@
 extern crate rand;
 use rand::Rng;
 
+use std::fs::File;
+use std::io::Read;
+use std::mem;
+
 
 struct Neuron
 {
@@ -217,6 +221,15 @@ impl RedNeuronal
 	}
 }
 
+
+fn invertir(en: &mut [u8])
+{
+	for i in 0..en.len()
+	{
+		println!("{}", i);
+	}
+}
+
 fn main()
 {
 
@@ -228,7 +241,7 @@ fn main()
 	let salidas = sal[0].len() as i32;
 	let neuronasOcultas = 5;
 	let capasOcultas = 2;
-	let epocas = 200000;
+	let epocas = 20;
 
 	let mut nn = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, 0.6);
 
@@ -250,5 +263,24 @@ fn main()
 
 	//let mut s = nn.salida();
 	//println!("{}", s[0]);
+
+
+	// Lectura de ficheros
+	let mut file=File::open("data/train_images").unwrap();
+    let mut buf = [0; 4];
+    file.read(&mut buf);
+    invertir(&mut buf);
+    println!("{:?}", buf[0]);
+    let lens: i32 = unsafe { mem::transmute(buf) };
+    println!("{}", lens);
+    
+
+    /*let mut data: i32;
+    let mut f = File::open("data/train_images").unwrap();
+    f.read_be_i32().unwrap();
+    unsafe { transmute(data.as_ptr()) };
+    println!("{}", data);
+	*/
+
 
 }
