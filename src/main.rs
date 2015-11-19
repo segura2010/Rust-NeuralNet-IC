@@ -160,28 +160,31 @@ impl RedNeuronal
 				}
 				//println!("Aqui");
 				// Ahora, calculamos el error de la capa de oculta y actualizamos sus pesos
-				let mut capaOculta = 1;
-				for neuron in 0..self.capas[capaOculta].len()
+				//let mut capaOculta = 1;
+				for capaOculta in 1..self.capas.len()-1
 				{
-					// el error de esta neurona sera: error de cada neurona de la siguiente capa * cada peso (acumulado)
-					let mut errorAcumulado = 0f32;
-					let capaSiguiente = capaOculta + 1;
-					let capaAnterior = capaOculta - 1;
-					for n in 0..self.capas[capaSiguiente].len()
+					for neuron in 0..self.capas[capaOculta].len()
 					{
+						// el error de esta neurona sera: error de cada neurona de la siguiente capa * cada peso (acumulado)
+						let mut errorAcumulado = 0f32;
+						let capaSiguiente = capaOculta + 1;
+						let capaAnterior = capaOculta - 1;
+						for n in 0..self.capas[capaSiguiente].len()
+						{
+							for peso in 0..self.capas[capaOculta][neuron].pesos.len()
+							{
+								errorAcumulado += self.capas[capaSiguiente][n].error * self.capas[capaOculta][neuron].pesos[peso];
+							}
+						}
+						// Finalmente, el error del neuron sera el acumulado * derivada de la funcion para la salida de este neuron
+						self.capas[capaOculta][neuron].error = errorAcumulado * derivadaSigmoide(self.capas[capaOculta][neuron].salida);
+						
+						// Una vez que tenemos el error propagado a este neuron, calculamos los nuevos pesos
 						for peso in 0..self.capas[capaOculta][neuron].pesos.len()
 						{
-							errorAcumulado += self.capas[capaSiguiente][n].error * self.capas[capaOculta][neuron].pesos[peso];
-						}
+							self.capas[capaOculta][neuron].pesos[peso] += self.tasaAprendizaje * self.capas[capaOculta][neuron].error * self.capas[capaAnterior][peso].salida;
+						} 
 					}
-					// Finalmente, el error del neuron sera el acumulado * derivada de la funcion para la salida de este neuron
-					self.capas[capaOculta][neuron].error = errorAcumulado * derivadaSigmoide(self.capas[capaOculta][neuron].salida);
-					
-					// Una vez que tenemos el error propagado a este neuron, calculamos los nuevos pesos
-					for peso in 0..self.capas[capaOculta][neuron].pesos.len()
-					{
-						self.capas[capaOculta][neuron].pesos[peso] += self.tasaAprendizaje * self.capas[capaOculta][neuron].error * self.capas[capaAnterior][peso].salida;
-					} 
 				}
 			}
 		}
@@ -224,10 +227,10 @@ fn main()
 	let entradas = ent[0].len() as i32;
 	let salidas = sal[0].len() as i32;
 	let neuronasOcultas = 5;
-	let capasOcultas = 1;
+	let capasOcultas = 2;
 	let epocas = 200000;
 
-	let mut nn = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, 0.2);
+	let mut nn = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, 0.6);
 
 	// Salidas sin entrenar
 	println!("Salidas antes de entrenar:");
