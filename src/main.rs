@@ -222,12 +222,16 @@ impl RedNeuronal
 }
 
 
-fn invertir(en: &mut [u8])
+fn invertir(en: &mut [u8]) -> [u8;4]
 {
+	let len = en.len();
+	let mut buf = [0; 4];
 	for i in 0..en.len()
 	{
-		println!("{}", i);
+		let act = len - i - 1;
+		buf[act] = en[i];
 	}
+	return buf;
 }
 
 fn main()
@@ -267,20 +271,12 @@ fn main()
 
 	// Lectura de ficheros
 	let mut file=File::open("data/train_images").unwrap();
-    let mut buf = [0; 4];
-    file.read(&mut buf);
-    invertir(&mut buf);
-    println!("{:?}", buf[0]);
-    let lens: i32 = unsafe { mem::transmute(buf) };
+    let mut buf = [0; 4]; // buffer de 4 bytes
+    file.read(&mut buf); // leemos 4 bytes
+    let mut p = invertir(&mut buf); // invertimos a bigendian
+    let lens: i32 = unsafe { mem::transmute(p) }; // tranformamos a entero 32 bits
     println!("{}", lens);
     
-
-    /*let mut data: i32;
-    let mut f = File::open("data/train_images").unwrap();
-    f.read_be_i32().unwrap();
-    unsafe { transmute(data.as_ptr()) };
-    println!("{}", data);
-	*/
 
 
 }
