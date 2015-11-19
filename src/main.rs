@@ -1,7 +1,8 @@
 
-// Compilar y ejecutar con "cargo run"
-// Compilar con "cargo build --release"
-// Ejecutar con "./target/debud/redneuronal"
+// Compilar y ejecutar con "cargo run" (no optimiza y es lento)
+
+// Compilar con "cargo build --release" (optimiza)
+// Ejecutar con "./target/release/redneuronal"
 
 extern crate rand;
 use rand::Rng;
@@ -9,6 +10,8 @@ use rand::Rng;
 use std::fs::File;
 use std::io::Read;
 use std::mem;
+use std::ops::Rem;
+use std::env;
 
 
 struct Neuron
@@ -234,9 +237,24 @@ fn invertir(en: &mut [u8]) -> [u8;4]
 	return buf;
 }
 
+fn encontrarMayor(en: Vec<f32>) -> usize
+{
+	let mut mayorIndice = 0 as usize;
+	for i in 1..en.len()
+	{
+		if en[i] < en[mayorIndice]
+		{
+			mayorIndice = i;
+		}
+	}
+
+	return mayorIndice;
+}
+
 fn main()
 {
 
+	/* Ejemplo simple
 	// entradas y salidas
 	let ent: Vec<Vec<f32> > = vec![vec![0f32, 1f32], vec![1f32, 0f32]];
 	let sal: Vec<Vec<f32> > = vec![vec![0f32],vec![1f32]];
@@ -267,53 +285,53 @@ fn main()
 
 	//let mut s = nn.salida();
 	//println!("{}", s[0]);
-
+	*/
 
 	// Lectura de ficheros
 	let mut file=File::open("data/train_images").unwrap();
     let mut buf = [0; 4]; // buffer de 4 bytes
-    
+     
     // numero magico
     file.read(&mut buf); // leemos 4 bytes
     let mut p = invertir(&mut buf); // invertimos a bigendian
     let lens: i32 = unsafe { mem::transmute(p) }; // tranformamos a entero 32 bits
-    println!("{}", lens);
+    println!("Numero Magico: {}", lens);
 
     // numero imagenes
     file.read(&mut buf); // leemos 4 bytes
     let numImagenes: i32 = unsafe { mem::transmute(invertir(&mut buf)) }; // tranformamos a entero 32 bits
-    println!("{}", numImagenes);
+    println!("Numero Imagenes: {}", numImagenes);
 
     // numero de filas y columnas
     file.read(&mut buf); // leemos 4 bytes
     let filas: i32 = unsafe { mem::transmute(invertir(&mut buf)) }; // tranformamos a entero 32 bits
-    println!("{}", filas);
+    println!("Filas: {}", filas);
 
     file.read(&mut buf); // leemos 4 bytes
     let columnas: i32 = unsafe { mem::transmute(invertir(&mut buf)) }; // tranformamos a entero 32 bits
-    println!("{}", columnas);
+    println!("Columnas: {}", columnas);
     
     println!("Cargando imagenes ({})", numImagenes);
     // leemos las imagenes
-    let mut imagenes: Vec< Vec<u8> > = vec![];
+    let mut pixelsLeidos = Vec::new();
+    file.read_to_end(&mut pixelsLeidos);
+    let mut imagenes: Vec< Vec<f32> > = vec![];
     let mut bufpixel = [0; 1]; // buffer de 4 bytes
-    let pixels = (filas*columnas);
-    for imagen in 0..numImagenes
-    {	//println!("{}", imagen);
-    	imagenes.push(Vec::new());
-	    for i in 0..pixels
-	    {
-	    	//for j in 0..columnas
-	    	//{
-	    		file.read(&mut bufpixel); // leemos 4 bytes
-	    		//let pixel: u8 = bufpixel[0]; //unsafe { mem::transmute(bufpixel) };
-	    		//println!("{}", pixel);
-	    		let ultima = imagenes.len() - 1;
-	    		imagenes[ultima].push(bufpixel[0]);
-	    	//}
-	    }
-	}
+    let pixels = (filas * columnas);
 
+    
+    for i in 0..pixelsLeidos.len()
+    {
+    	let modulo = (i as i32) % pixels;
+    	if modulo == 0
+    	{
+    		imagenes.push(Vec::new());
+    	}
+    	let ultima = imagenes.len()-1;
+    	imagenes[ultima].push(pixelsLeidos[i as usize] as f32);
+    }
+    println!("{:?}", imagenes.len());
+	
 	println!("Cargando etiquetas ({})", numImagenes);
 	// Leemos las etiquetas
 	let mut file=File::open("data/train_labels").unwrap();
@@ -321,16 +339,35 @@ fn main()
 	file.read(&mut buf);
 	file.read(&mut buf);
 	// leemos las etiquetas de las imagenes
-    let mut etiquetas: Vec<u8> = vec![];
+	let mut etiquetasLeidas = Vec::new();
+    file.read_to_end(&mut etiquetasLeidas);
+    let mut etiquetas: Vec< Vec<f32> > = vec![];
     let mut label = [0; 1]; // buffer de 4 bytes
-    for imagen in 0..numImagenes
-    {	//println!("{}", imagen);
-		file.read(&mut label); // leemos 4 bytes
-		//let pixel: u8 = bufpixel[0]; //unsafe { mem::transmute(bufpixel) };
-		//println!("{}", pixel);
+    for imagen in 0..etiquetasLeidas.len()
+    {	
 		let ultima = imagenes.len() - 1;
-		etiquetas.push(label[0]);
+		let mut v: Vec<f32> = vec![0f32, 0f32, 0f32, 0f32, 0f32, 0f32, 0f32, 0f32, 0f32, 0f32];
+		v[etiquetasLeidas[imagen] as usize] = 1f32;
+		etiquetas.push(v);
 	}
+	println!("{:?}", etiquetas.len());
+
+	let entradas = imagenes[0].len() as i32;
+	let salidas = etiquetas[0].len() as i32;
+	let neuronasOcultas = 10;
+	let capasOcultas = 1;
+	let epocas = 10;
+	let tasa = 0.001;
+	let mut red = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, tasa);
+
+	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
+	red.entrenarBackPropagation(&imagenes, &etiquetas, epocas);
+
+	red.ejecutar(&imagenes[5]);
+	//let salidaBuena = encontrarMayor(etiquetas[0].clone());
+	//let salidaRed = encontrarMayor(red.salida());
+	println!("Salida real: {:?}", etiquetas[5]);
+	println!("Salida de la red: {:?}", red.salida());
 
 }
 
