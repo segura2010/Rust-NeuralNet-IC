@@ -240,9 +240,9 @@ fn invertir(en: &mut [u8]) -> [u8;4]
 fn encontrarMayor(en: Vec<f32>) -> usize
 {
 	let mut mayorIndice = 0 as usize;
-	for i in 1..en.len()
+	for i in 0..en.len()
 	{
-		if en[i] < en[mayorIndice]
+		if en[i] > en[mayorIndice]
 		{
 			mayorIndice = i;
 		}
@@ -254,39 +254,42 @@ fn encontrarMayor(en: Vec<f32>) -> usize
 fn main()
 {
 
-	/* Ejemplo simple
+	// Ejemplo simple (XOR)
 	// entradas y salidas
-	let ent: Vec<Vec<f32> > = vec![vec![0f32, 1f32], vec![1f32, 0f32]];
-	let sal: Vec<Vec<f32> > = vec![vec![0f32],vec![1f32]];
+	let ent: Vec<Vec<f32> > = vec![vec![0f32, 0f32], vec![0f32, 1f32], vec![1f32, 0f32],vec![1f32, 1f32]];
+	let sal: Vec<Vec<f32> > = vec![vec![1f32,0f32],vec![0f32,1f32], vec![0f32, 1f32], vec![1f32,0f32]];
 
 	let entradas = ent[0].len() as i32;
 	let salidas = sal[0].len() as i32;
-	let neuronasOcultas = 5;
-	let capasOcultas = 2;
-	let epocas = 20;
+	let neuronasOcultas = 20;
+	let capasOcultas = 1;
+	let epocas = 2000000;
 
-	let mut nn = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, 0.6);
+	let mut nn = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, 0.1);
 
 	// Salidas sin entrenar
 	println!("Salidas antes de entrenar:");
 	nn.ejecutar(&ent[0]);
-	nn.printSalida();
+	println!("{:?}", nn.salida());
 	nn.ejecutar(&ent[1]);
-	nn.printSalida();
+	println!("{:?}", nn.salida());
 
 	nn.entrenarBackPropagation(&ent, &sal, epocas);
 	
 	// salidas entrenadas
 	println!("Salidas despues de entrenar:");
 	nn.ejecutar(&ent[0]);
-	nn.printSalida();
+	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
 	nn.ejecutar(&ent[1]);
-	nn.printSalida();
+	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
+	nn.ejecutar(&ent[2]);
+	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
+	nn.ejecutar(&ent[3]);
+	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
+	
 
-	//let mut s = nn.salida();
-	//println!("{}", s[0]);
-	*/
-
+	/*
+	// PROBLEMA MNIST
 	// Lectura de ficheros
 	let mut file=File::open("data/train_images").unwrap();
     let mut buf = [0; 4]; // buffer de 4 bytes
@@ -328,7 +331,7 @@ fn main()
     		imagenes.push(Vec::new());
     	}
     	let ultima = imagenes.len()-1;
-    	imagenes[ultima].push(pixelsLeidos[i as usize] as f32);
+    	imagenes[ultima].push((pixelsLeidos[i as usize] as f32)); // normalizando
     }
     println!("{:?}", imagenes.len());
 	
@@ -354,20 +357,22 @@ fn main()
 
 	let entradas = imagenes[0].len() as i32;
 	let salidas = etiquetas[0].len() as i32;
-	let neuronasOcultas = 10;
+	let neuronasOcultas = 3;
 	let capasOcultas = 1;
-	let epocas = 10;
-	let tasa = 0.001;
+	let epocas = 100;
+	let tasa = 0.000000001;
 	let mut red = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, tasa);
 
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
 	red.entrenarBackPropagation(&imagenes, &etiquetas, epocas);
 
-	red.ejecutar(&imagenes[5]);
-	//let salidaBuena = encontrarMayor(etiquetas[0].clone());
-	//let salidaRed = encontrarMayor(red.salida());
-	println!("Salida real: {:?}", etiquetas[5]);
-	println!("Salida de la red: {:?}", red.salida());
+	let probarCon = 44;
+	red.ejecutar(&imagenes[probarCon]);
+	let salidaBuena = encontrarMayor(etiquetas[probarCon].clone());
+	let salidaRed = encontrarMayor(red.salida().clone());
+	println!("Salida real: {:?}, {}", etiquetas[probarCon], salidaBuena);
+	println!("Salida de la red: {:?}, {}", red.salida(), salidaRed);
+	*/
 
 }
 
