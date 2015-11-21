@@ -4,6 +4,7 @@
 // Compilar con "cargo build --release" (optimiza)
 // Ejecutar con "./target/release/redneuronal"
 
+
 extern crate rand;
 use rand::Rng;
 
@@ -13,12 +14,14 @@ use std::mem;
 use std::ops::Rem;
 use std::env;
 
-
+#[warn(non_snake_case)]
 struct Neuron
 {
 	pesos: Vec<f32>,
+	bias: f32,
 	error: f32,
-	salida: f32
+	salida: f32,
+	salidaSimple: f32 // sin aplicar la funcion de activacion
 }
 
 fn sigmoide(x: f32) -> f32
@@ -38,7 +41,7 @@ struct RedNeuronal {
     tasaAprendizaje: f32
 }
 
-
+#[warn(non_snake_case)]
 impl RedNeuronal
 {
 	fn new(entradas:i32, capasOcultas:i32, ocultas:i32, salidas:i32, tasa:f32) -> RedNeuronal
@@ -50,8 +53,8 @@ impl RedNeuronal
 	    nn.push(Vec::new());
 	    for i in 0..entradas
 	    {
-	    	let x = rand::random::<f32>();
-	    	nn[0].push( Neuron{pesos:vec![x], error:0.0, salida:1.0} );
+	    	let x = rand::random::<f32>() - 0.5;
+	    	nn[0].push( Neuron{pesos:vec![x], error:0.0, salida:0.0, salidaSimple:0.0, bias:x} );
 	    }
 
 	    // creamos la capa(s) oculta(s)
@@ -67,11 +70,11 @@ impl RedNeuronal
 		    	for j in 0..entradasACapa
 		    	{
 		    		//println!("peso {}", j);
-		    		let x = rand::random::<f32>();
+		    		let x = rand::random::<f32>() - 0.5;
 		    		pesos.push(x);
 		    	}
 		    	let capaAct = nn.len()-1;
-		    	nn[capaAct].push( Neuron{pesos:pesos, error:0.0, salida:1.0} );
+		    	nn[capaAct].push( Neuron{pesos:pesos, error:0.0, salida:0.0, salidaSimple:0.0, bias:0.5} );
 		    }
 		}
 
@@ -83,11 +86,11 @@ impl RedNeuronal
 	    	let entradasACapa = nn[nn.len()-2].len();
 	    	for j in 0..entradasACapa
 	    	{
-	    		let x = rand::random::<f32>();
+	    		let x = rand::random::<f32>() - 0.5;
 	    		pesos.push(x);
 	    	}
 	    	let capaAct = nn.len()-1;
-	    	nn[capaAct].push( Neuron{pesos:pesos, error:0.0, salida:1.0} );
+	    	nn[capaAct].push( Neuron{pesos:pesos, error:0.0, salida:0.0, salidaSimple:0.0, bias:0.5} );
 	    }
 
 	    let mut red = RedNeuronal{ capas: nn, tasaAprendizaje: tasa};
@@ -102,6 +105,8 @@ impl RedNeuronal
 		for neuron in 0..self.capas[0].len()
 		{
 			o = self.capas[0][neuron].pesos[0] * entrada[neuron];
+			o = o + self.capas[0][neuron].bias;
+			self.capas[0][neuron].salidaSimple = o;
 			self.capas[0][neuron].salida = sigmoide(o);
 		}
 
@@ -115,6 +120,8 @@ impl RedNeuronal
 				{
 					o = o + ( self.capas[capa][neuron].pesos[p] * self.capas[capa-1][p].salida );
 				}
+				o = o + self.capas[capa][neuron].bias;
+				self.capas[capa][neuron].salidaSimple = o;
 				self.capas[capa][neuron].salida = sigmoide(o);
 			}
 		}
@@ -134,7 +141,7 @@ impl RedNeuronal
 				println!("\tNEURON {}", n);
 				for p in 0..self.capas[c][n].pesos.len()
 				{
-					println!("\tPeso {} // Salida {}", self.capas[c][n].pesos[p], self.capas[c][n].salida);
+					println!("\tPeso {} // Salida {} // SalidaSimple {}", self.capas[c][n].pesos[p], self.capas[c][n].salida, self.capas[c][n].salidaSimple);
 				}
 			}
 		}
@@ -191,6 +198,8 @@ impl RedNeuronal
 						{
 							self.capas[capaOculta][neuron].pesos[peso] += self.tasaAprendizaje * self.capas[capaOculta][neuron].error * self.capas[capaAnterior][peso].salida;
 						} 
+						// y actualizamos la "bias"
+						self.capas[capaOculta][neuron].bias += self.tasaAprendizaje * self.capas[capaOculta][neuron].error;
 					}
 				}
 			}
@@ -223,7 +232,6 @@ impl RedNeuronal
 		return salida;
 	}
 }
-
 
 fn invertir(en: &mut [u8]) -> [u8;4]
 {
@@ -261,21 +269,17 @@ fn main()
 
 	let entradas = ent[0].len() as i32;
 	let salidas = sal[0].len() as i32;
-	let neuronasOcultas = 20;
+	let neuronasOcultas = 50;
 	let capasOcultas = 1;
 	let epocas = 2000000;
 
-	let mut nn = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, 0.1);
+	let mut nn = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, 0.6);
 
-	// Salidas sin entrenar
-	println!("Salidas antes de entrenar:");
 	nn.ejecutar(&ent[0]);
-	println!("{:?}", nn.salida());
-	nn.ejecutar(&ent[1]);
-	println!("{:?}", nn.salida());
+	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
 
 	nn.entrenarBackPropagation(&ent, &sal, epocas);
-	
+
 	// salidas entrenadas
 	println!("Salidas despues de entrenar:");
 	nn.ejecutar(&ent[0]);
