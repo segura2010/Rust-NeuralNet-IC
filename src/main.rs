@@ -3,10 +3,13 @@
 
 // Compilar con "cargo build --release" (optimiza)
 // Ejecutar con "./target/release/redneuronal"
+// Todo a la vez: "cargo build --release; ./target/release/redneuronal"
 
 
 extern crate rand;
 use rand::Rng;
+
+use std::thread;
 
 use std::fs::File;
 use std::io::Read;
@@ -153,6 +156,7 @@ impl RedNeuronal
 	{
 		for epoca in 0..epocas
 		{
+			//rand::thread_rng().shuffle(entradas.clone().as_mut_slice());
 			for entrada in 0..entradas.len()
 			{
 				// Ejecuto la red
@@ -261,7 +265,7 @@ fn encontrarMayor(en: Vec<f32>) -> usize
 
 fn main()
 {
-
+	/*
 	// Ejemplo simple (XOR)
 	// entradas y salidas
 	let ent: Vec<Vec<f32> > = vec![vec![0f32, 0f32], vec![0f32, 1f32], vec![1f32, 0f32],vec![1f32, 1f32]];
@@ -290,9 +294,10 @@ fn main()
 	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
 	nn.ejecutar(&ent[3]);
 	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
+	*/
 	
 
-	/*
+	
 	// PROBLEMA MNIST
 	// Lectura de ficheros
 	let mut file=File::open("data/train_images").unwrap();
@@ -335,7 +340,7 @@ fn main()
     		imagenes.push(Vec::new());
     	}
     	let ultima = imagenes.len()-1;
-    	imagenes[ultima].push((pixelsLeidos[i as usize] as f32)); // normalizando
+    	imagenes[ultima].push((pixelsLeidos[i as usize] as f32) / 255.0); // normalizando
     }
     println!("{:?}", imagenes.len());
 	
@@ -361,10 +366,10 @@ fn main()
 
 	let entradas = imagenes[0].len() as i32;
 	let salidas = etiquetas[0].len() as i32;
-	let neuronasOcultas = 3;
+	let neuronasOcultas = 256;
 	let capasOcultas = 1;
-	let epocas = 100;
-	let tasa = 0.000000001;
+	let epocas = 1;
+	let tasa = 0.000001;
 	let mut red = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, tasa);
 
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
@@ -376,6 +381,36 @@ fn main()
 	let salidaRed = encontrarMayor(red.salida().clone());
 	println!("Salida real: {:?}, {}", etiquetas[probarCon], salidaBuena);
 	println!("Salida de la red: {:?}, {}", red.salida(), salidaRed);
+	
+	// probando la red
+	let mut fallos = 0f32;
+	for imagen in 0..imagenes.len()
+	{
+		red.ejecutar(&imagenes[imagen]);
+		let salidaBuena = encontrarMayor(etiquetas[imagen].clone());
+		let salidaRed = encontrarMayor(red.salida().clone());
+		if salidaBuena != salidaRed
+		{
+			fallos = fallos + 1.0;
+		}
+	}
+
+	let porcentaje = (fallos / (imagenes.len() as f32)) * 100.0;
+	println!("Fallos: {} / Porcentaje Fallos: {}", fallos, porcentaje);
+
+
+	/*
+	Algunos resultados:
+		- 17% de fallos (entranamiento) (datos sin normalizar)
+			256 ocultas
+			10 epocas
+			0.001 tasa aprendizaje
+
+		- 14% de fallos (entranamiento) (datos sin normalizar)
+			256 ocultas
+			1 epocas
+			0.1 tasa aprendizaje
+
 	*/
 
 }
