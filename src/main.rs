@@ -11,6 +11,10 @@ use rand::Rng;
 
 use std::thread;
 
+use std::error::Error;
+
+use std::io::Write;
+use std::path::Path;
 use std::fs::File;
 use std::io::Read;
 use std::mem;
@@ -144,7 +148,7 @@ impl RedNeuronal
 				println!("\tNEURON {}", n);
 				for p in 0..self.capas[c][n].pesos.len()
 				{
-					println!("\tPeso {} // Salida {} // SalidaSimple {}", self.capas[c][n].pesos[p], self.capas[c][n].salida, self.capas[c][n].salidaSimple);
+					println!("\tPeso {} // Bias {} // Salida {} // SalidaSimple {}", self.capas[c][n].pesos[p], self.capas[c][n].bias, self.capas[c][n].salida, self.capas[c][n].salidaSimple);
 				}
 			}
 		}
@@ -212,6 +216,41 @@ impl RedNeuronal
 		return self;
 	}
 
+	fn entrenarBackPropagationConRefuerzo(&mut self, entradas: &Vec<Vec<f32> >, salidas: &Vec<Vec<f32> >, epocas:i32) -> &mut RedNeuronal
+	{
+		// El objetivo es entrenar una vez, probar los fallos y volver a entrenar tantan veces como "epocas"
+		// pero solamente con los fallos de la epoca anterior (hay que tener cuidado!)
+		self.entrenarBackPropagation(&entradas, &salidas, 1);
+
+		for epoca in 0..epocas
+		{
+			let mut falladasEntrada: Vec<Vec<f32> > = Vec::new();
+			let mut falladasSalida: Vec<Vec<f32> > = Vec::new();
+			let mut fallos = 0f32;
+			// probamos el error
+			for e in 0..entradas.len()
+			{
+				self.ejecutar(&entradas[e]);
+				let salidaBuena = encontrarMayor(salidas[e].clone());
+				let salidaRed = encontrarMayor(self.salida().clone());
+				if salidaBuena != salidaRed
+				{
+					fallos = fallos + 1.0;
+					falladasEntrada.push(entradas[e].clone());
+					falladasSalida.push(salidas[e].clone());
+				}
+			}
+
+			let porcentaje = (fallos / (entradas.len() as f32)) * 100.0;
+			println!("EPOCA {}:: Fallos: {} / Porcentaje Fallos: {}", epoca, fallos, porcentaje);
+
+			// entrenamos otra vez con los fallos
+			self.entrenarBackPropagation(&falladasEntrada, &falladasSalida, 1);
+		}
+
+		return self;
+	}
+
 	fn printSalida(&mut self) -> &mut RedNeuronal
 	{
 		let ultimaCapa = self.capas.len()-1;
@@ -234,6 +273,90 @@ impl RedNeuronal
 		}
 
 		return salida;
+	}
+
+	fn guardarArchivo(&mut self)
+	{
+		let x = rand::random::<i32>();
+		let mut nombreArchivo = self.tasaAprendizaje.to_string() + "_" + &self.capas.len().to_string() + "_" + &self.capas[1].len().to_string() + ".txt"; //concat!(self.capas.len().as_String(), "_", self.tasaAprendizaje, "_", self.capas[0].len(), ".txt");
+		let mut f = File::create(&Path::new(&nombreArchivo));
+		
+		match f
+		{
+	        Ok(mut stream) => {
+	        	for c in 0..self.capas.len()
+				{
+					//println!("CAPA {}", c);
+					for n in 0..self.capas[c].len()
+					{
+						stream.write_all( (self.capas[c][n].bias.to_string() + " ").as_bytes() );
+						for p in 0..self.capas[c][n].pesos.len()
+						{
+							//println!("\tPeso {} // Salida {} // SalidaSimple {}", self.capas[c][n].pesos[p], self.capas[c][n].salida, self.capas[c][n].salidaSimple);
+							stream.write_all( (self.capas[c][n].pesos[p].to_string() + " ").as_bytes() );
+						}
+						stream.write_all( ("\n").as_bytes() );
+					}
+				}
+				println!("Archivo guardado!");
+	        }
+	        Err(err) => {
+	            panic!(err);
+	        }
+	    }
+	}
+
+	// Lee una red neuronal desde un fichero
+	fn leerArchivo(&mut self, nombreArchivo: &str) -> RedNeuronal
+	{
+		let mut f = File::open(&Path::new(&nombreArchivo));
+		let mut buf = String::new();
+
+		let mut nn = Vec::new();
+
+		match f
+		{
+	        Ok(mut stream) => {
+
+	        	stream.read_to_string(&mut buf);
+	        	//println!("{:?}", buf);
+	        	let mut pesosNeurona = buf.split("\n");
+	        	let mut pesoAnterior = -1;
+	        	for pesos in pesosNeurona
+	        	{
+	        		if pesos != ""
+	        		{
+		        		let mut pesoStr = String::new();
+		        		pesoStr.push_str(pesos);
+		        		let mut pesosArray: Vec<&str> = pesoStr.split(" ").collect();
+		        		//println!("{:?}", pesosArray.len());
+		        		if pesoAnterior != pesosArray.len()
+		        		{ 	// es una capa distinta
+		        			pesoAnterior = pesosArray.len();
+		        			nn.push(Vec::new());
+		        		}
+		        		let capaAct = nn.len()-1;
+		        		let mut pes:Vec<f32> = Vec::new();
+		        		let bias = pesosArray[0].parse::<f32>().unwrap();
+		        		for p in 1..pesosArray.len()
+		        		{
+		        			if pesosArray[p] != ""
+		        			{
+			        			let peso = pesosArray[p].parse::<f32>().unwrap();
+				    			pes.push(peso);
+				    		}
+			    		}
+			    		nn[capaAct].push( Neuron{pesos:pes, error:0.0, salida:0.0, salidaSimple:0.0, bias:bias} );
+			    	}
+	        	}
+
+	        	let mut red = RedNeuronal{ capas: nn, tasaAprendizaje: self.tasaAprendizaje};
+	        	return red;
+	        }
+	        Err(err) => {
+	            panic!(err);
+	        }
+	    }
 	}
 }
 
@@ -273,11 +396,11 @@ fn main()
 
 	let entradas = ent[0].len() as i32;
 	let salidas = sal[0].len() as i32;
-	let neuronasOcultas = 50;
+	let neuronasOcultas = 3;
 	let capasOcultas = 1;
-	let epocas = 2000000;
+	let epocas = 2000;
 
-	let mut nn = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, 0.6);
+	let mut nn = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, 1.1);
 
 	nn.ejecutar(&ent[0]);
 	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
@@ -294,6 +417,8 @@ fn main()
 	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
 	nn.ejecutar(&ent[3]);
 	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
+
+	//nn.guardarArchivo();
 	*/
 	
 
@@ -340,7 +465,7 @@ fn main()
     		imagenes.push(Vec::new());
     	}
     	let ultima = imagenes.len()-1;
-    	imagenes[ultima].push((pixelsLeidos[i as usize] as f32) / 255.0); // normalizando
+    	imagenes[ultima].push((pixelsLeidos[i as usize] as f32)); // normalizando
     }
     println!("{:?}", imagenes.len());
 	
@@ -368,19 +493,14 @@ fn main()
 	let salidas = etiquetas[0].len() as i32;
 	let neuronasOcultas = 256;
 	let capasOcultas = 1;
-	let epocas = 1;
-	let tasa = 0.000001;
+	let epocas = 2;
+	let tasa = 0.1;
 	let mut red = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, tasa);
 
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
-	red.entrenarBackPropagation(&imagenes, &etiquetas, epocas);
+	red.entrenarBackPropagationConRefuerzo(&imagenes, &etiquetas, epocas);
 
-	let probarCon = 44;
-	red.ejecutar(&imagenes[probarCon]);
-	let salidaBuena = encontrarMayor(etiquetas[probarCon].clone());
-	let salidaRed = encontrarMayor(red.salida().clone());
-	println!("Salida real: {:?}, {}", etiquetas[probarCon], salidaBuena);
-	println!("Salida de la red: {:?}, {}", red.salida(), salidaRed);
+	red.guardarArchivo();
 	
 	// probando la red
 	let mut fallos = 0f32;
@@ -397,7 +517,7 @@ fn main()
 
 	let porcentaje = (fallos / (imagenes.len() as f32)) * 100.0;
 	println!("Fallos: {} / Porcentaje Fallos: {}", fallos, porcentaje);
-
+	
 
 	/*
 	Algunos resultados:
