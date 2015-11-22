@@ -220,6 +220,8 @@ impl RedNeuronal
 	{
 		// El objetivo es entrenar una vez, probar los fallos y volver a entrenar tantan veces como "epocas"
 		// pero solamente con los fallos de la epoca anterior (hay que tener cuidado!)
+		let tasaInicial = self.tasaAprendizaje;
+		let tasaFinal = self.tasaAprendizaje * 0.001;
 		self.entrenarBackPropagation(&entradas, &salidas, 1);
 
 		for epoca in 0..epocas
@@ -244,9 +246,12 @@ impl RedNeuronal
 			let porcentaje = (fallos / (entradas.len() as f32)) * 100.0;
 			println!("EPOCA {}:: Fallos: {} / Porcentaje Fallos: {}", epoca, fallos, porcentaje);
 
-			// entrenamos otra vez con los fallos
+			// entrenamos otra vez con los fallos pero con una tasa menor (reducida al 0.1%)
+			self.tasaAprendizaje = tasaFinal;
 			self.entrenarBackPropagation(&falladasEntrada, &falladasSalida, 1);
 		}
+
+		self.tasaAprendizaje = tasaInicial;
 
 		return self;
 	}
