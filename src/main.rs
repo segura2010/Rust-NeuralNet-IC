@@ -5,7 +5,7 @@
 // Ejecutar con "./target/release/redneuronal"
 // Todo a la vez: "cargo build --release; ./target/release/redneuronal"
 
-
+#![allow(warnings)]
 extern crate rand;
 use rand::Rng;
 
@@ -247,7 +247,7 @@ impl RedNeuronal
 			println!("EPOCA {}:: Fallos: {} / Porcentaje Fallos: {}", epoca, fallos, porcentaje);
 
 			// entrenamos otra vez con los fallos pero con una tasa menor (reducida al 0.1%)
-			self.tasaAprendizaje = tasaFinal;
+			self.tasaAprendizaje = tasaFinal * (0.1 * epoca as f32);
 			self.entrenarBackPropagation(&falladasEntrada, &falladasSalida, 1);
 		}
 
@@ -470,7 +470,18 @@ fn main()
     		imagenes.push(Vec::new());
     	}
     	let ultima = imagenes.len()-1;
-    	imagenes[ultima].push((pixelsLeidos[i as usize] as f32)); // normalizando
+    	let mut pixel = (pixelsLeidos[i as usize] as f32);
+    	/*
+    	if pixel > 50.0
+    	{
+    		pixel = 1.0;
+    	}
+    	else
+    	{
+    		pixel = 0.0;
+    	}
+    	*/
+    	imagenes[ultima].push(pixel);
     }
     println!("{:?}", imagenes.len());
 	
@@ -498,8 +509,8 @@ fn main()
 	let salidas = etiquetas[0].len() as i32;
 	let neuronasOcultas = 256;
 	let capasOcultas = 1;
-	let epocas = 2;
-	let tasa = 0.1;
+	let epocas = 4;
+	let tasa = 0.01;
 	let mut red = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, tasa);
 
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
@@ -534,6 +545,11 @@ fn main()
 		- 14% de fallos (entranamiento) (datos sin normalizar)
 			256 ocultas
 			1 epocas
+			0.1 tasa aprendizaje
+
+		- 12% de fallos (entranamiento) (datos sin normalizar)
+			256 ocultas
+			1 epocas + 2 epocas de refuerzo
 			0.1 tasa aprendizaje
 
 	*/
