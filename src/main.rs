@@ -530,14 +530,14 @@ fn main()
 
 	let entradas = imagenes[0].len() as i32;
 	let salidas = etiquetas[0].len() as i32;
-	let neuronasOcultas = 300;
+	let neuronasOcultas = 400;
 	let capasOcultas = 1;
 	let epocas = 30;
 	let tasa = 0.1;
 	let mut red = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, tasa);
 
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
-	red.entrenarBackPropagationConRefuerzo(&imagenes, &etiquetas, epocas, true);
+	red.entrenarBackPropagationConRefuerzo(&imagenes, &etiquetas, epocas, false);
 
 	red.guardarArchivo("_final");
 	
