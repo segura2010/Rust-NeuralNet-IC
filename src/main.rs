@@ -242,6 +242,7 @@ impl RedNeuronal
 					falladasSalida.push(salidas[e].clone());
 				}
 			}
+			self.guardarArchivo(&epoca.to_string());
 
 			let porcentaje = (fallos / (entradas.len() as f32)) * 100.0;
 			println!("EPOCA {}:: Fallos: {} / Porcentaje Fallos: {}", epoca, fallos, porcentaje);
@@ -280,10 +281,11 @@ impl RedNeuronal
 		return salida;
 	}
 
-	fn guardarArchivo(&mut self)
+	fn guardarArchivo(&mut self, fin: &str)
 	{
 		let x = rand::random::<i32>();
-		let mut nombreArchivo = self.tasaAprendizaje.to_string() + "_" + &self.capas.len().to_string() + "_" + &self.capas[1].len().to_string() + ".txt"; //concat!(self.capas.len().as_String(), "_", self.tasaAprendizaje, "_", self.capas[0].len(), ".txt");
+		let path = "/resultados".to_string();
+		let mut nombreArchivo = self.tasaAprendizaje.to_string() + "_" + &self.capas.len().to_string() + "_" + &self.capas[1].len().to_string() + "_" + fin + ".txt";
 		let mut f = File::create(&Path::new(&nombreArchivo));
 		
 		match f
@@ -507,16 +509,16 @@ fn main()
 
 	let entradas = imagenes[0].len() as i32;
 	let salidas = etiquetas[0].len() as i32;
-	let neuronasOcultas = 256;
+	let neuronasOcultas = 184;
 	let capasOcultas = 1;
-	let epocas = 4;
-	let tasa = 0.01;
+	let epocas = 30;
+	let tasa = 0.1;
 	let mut red = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, tasa);
 
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
 	red.entrenarBackPropagationConRefuerzo(&imagenes, &etiquetas, epocas);
 
-	red.guardarArchivo();
+	red.guardarArchivo("_final");
 	
 	// probando la red
 	let mut fallos = 0f32;
