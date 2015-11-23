@@ -156,7 +156,7 @@ impl RedNeuronal
 		return self;
 	}
 
-	fn entrenarBackPropagation(&mut self, entradas: &Vec<Vec<f32> >, salidas: &Vec<Vec<f32> >, epocas:i32) -> &mut RedNeuronal
+	fn entrenarBackPropagation(&mut self, entradas: &Vec<Vec<f32> >, salidas: &Vec<Vec<f32> >, epocas:i32, restriccion:bool) -> &mut RedNeuronal
 	{
 		for epoca in 0..epocas
 		{
@@ -205,6 +205,17 @@ impl RedNeuronal
 						for peso in 0..self.capas[capaOculta][neuron].pesos.len()
 						{
 							self.capas[capaOculta][neuron].pesos[peso] += self.tasaAprendizaje * self.capas[capaOculta][neuron].error * self.capas[capaAnterior][peso].salida;
+							if restriccion 
+							{
+								if self.capas[capaOculta][neuron].pesos[peso] > 0.5
+								{
+									self.capas[capaOculta][neuron].pesos[peso] = 0.5;
+								}
+								else if self.capas[capaOculta][neuron].pesos[peso] < -0.5
+								{
+									self.capas[capaOculta][neuron].pesos[peso] = -0.5;
+								}
+							}
 						} 
 						// y actualizamos la "bias"
 						self.capas[capaOculta][neuron].bias += self.tasaAprendizaje * self.capas[capaOculta][neuron].error;
@@ -216,13 +227,13 @@ impl RedNeuronal
 		return self;
 	}
 
-	fn entrenarBackPropagationConRefuerzo(&mut self, entradas: &Vec<Vec<f32> >, salidas: &Vec<Vec<f32> >, epocas:i32) -> &mut RedNeuronal
+	fn entrenarBackPropagationConRefuerzo(&mut self, entradas: &Vec<Vec<f32> >, salidas: &Vec<Vec<f32> >, epocas:i32, restriccion:bool) -> &mut RedNeuronal
 	{
 		// El objetivo es entrenar una vez, probar los fallos y volver a entrenar tantan veces como "epocas"
 		// pero solamente con los fallos de la epoca anterior (hay que tener cuidado!)
 		let tasaInicial = self.tasaAprendizaje;
 		let tasaFinal = self.tasaAprendizaje * 0.001;
-		self.entrenarBackPropagation(&entradas, &salidas, 1);
+		self.entrenarBackPropagation(&entradas, &salidas, 1, restriccion);
 
 		for epoca in 0..epocas
 		{
@@ -249,7 +260,7 @@ impl RedNeuronal
 
 			// entrenamos otra vez con los fallos pero con una tasa menor (reducida al 0.1%)
 			self.tasaAprendizaje = tasaFinal * (0.1 * epoca as f32);
-			self.entrenarBackPropagation(&falladasEntrada, &falladasSalida, 1);
+			self.entrenarBackPropagation(&falladasEntrada, &falladasSalida, 1, restriccion);
 		}
 
 		self.tasaAprendizaje = tasaInicial;
@@ -393,46 +404,10 @@ fn encontrarMayor(en: Vec<f32>) -> usize
 	return mayorIndice;
 }
 
-fn main()
+fn leerFicherosImagenes(ficheroImagenes: &str, ficheroEtiquetas: &str) -> (Vec< Vec<f32> >, Vec< Vec<f32> >)
 {
-	/*
-	// Ejemplo simple (XOR)
-	// entradas y salidas
-	let ent: Vec<Vec<f32> > = vec![vec![0f32, 0f32], vec![0f32, 1f32], vec![1f32, 0f32],vec![1f32, 1f32]];
-	let sal: Vec<Vec<f32> > = vec![vec![1f32,0f32],vec![0f32,1f32], vec![0f32, 1f32], vec![1f32,0f32]];
-
-	let entradas = ent[0].len() as i32;
-	let salidas = sal[0].len() as i32;
-	let neuronasOcultas = 3;
-	let capasOcultas = 1;
-	let epocas = 2000;
-
-	let mut nn = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, 1.1);
-
-	nn.ejecutar(&ent[0]);
-	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
-
-	nn.entrenarBackPropagation(&ent, &sal, epocas);
-
-	// salidas entrenadas
-	println!("Salidas despues de entrenar:");
-	nn.ejecutar(&ent[0]);
-	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
-	nn.ejecutar(&ent[1]);
-	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
-	nn.ejecutar(&ent[2]);
-	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
-	nn.ejecutar(&ent[3]);
-	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
-
-	//nn.guardarArchivo();
-	*/
-	
-
-	
-	// PROBLEMA MNIST
 	// Lectura de ficheros
-	let mut file=File::open("data/train_images").unwrap();
+	let mut file=File::open(ficheroImagenes).unwrap();
     let mut buf = [0; 4]; // buffer de 4 bytes
      
     // numero magico
@@ -489,7 +464,7 @@ fn main()
 	
 	println!("Cargando etiquetas ({})", numImagenes);
 	// Leemos las etiquetas
-	let mut file=File::open("data/train_labels").unwrap();
+	let mut file=File::open(ficheroEtiquetas).unwrap();
 	// saltamos numero magico y de imagenes
 	file.read(&mut buf);
 	file.read(&mut buf);
@@ -507,16 +482,62 @@ fn main()
 	}
 	println!("{:?}", etiquetas.len());
 
+	return ( imagenes, etiquetas );
+}
+
+fn main()
+{
+	/*
+	// Ejemplo simple (XOR)
+	// entradas y salidas
+	let ent: Vec<Vec<f32> > = vec![vec![0f32, 0f32], vec![0f32, 1f32], vec![1f32, 0f32],vec![1f32, 1f32]];
+	let sal: Vec<Vec<f32> > = vec![vec![1f32,0f32],vec![0f32,1f32], vec![0f32, 1f32], vec![1f32,0f32]];
+
+	let entradas = ent[0].len() as i32;
+	let salidas = sal[0].len() as i32;
+	let neuronasOcultas = 3;
+	let capasOcultas = 1;
+	let epocas = 2000;
+
+	let mut nn = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, 1.1);
+
+	nn.ejecutar(&ent[0]);
+	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
+
+	nn.entrenarBackPropagation(&ent, &sal, epocas);
+
+	// salidas entrenadas
+	println!("Salidas despues de entrenar:");
+	nn.ejecutar(&ent[0]);
+	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
+	nn.ejecutar(&ent[1]);
+	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
+	nn.ejecutar(&ent[2]);
+	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
+	nn.ejecutar(&ent[3]);
+	println!("{:?}, {:?}", nn.salida(), encontrarMayor(nn.salida()));
+
+	//nn.guardarArchivo();
+	*/
+	
+
+	
+	// PROBLEMA MNIST
+
+	let tuplaImagenes = leerFicherosImagenes("data/train_images", "data/train_labels");
+	let mut imagenes = tuplaImagenes.0;
+	let mut etiquetas = tuplaImagenes.1;
+
 	let entradas = imagenes[0].len() as i32;
 	let salidas = etiquetas[0].len() as i32;
-	let neuronasOcultas = 184;
+	let neuronasOcultas = 300;
 	let capasOcultas = 1;
 	let epocas = 30;
 	let tasa = 0.1;
 	let mut red = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, tasa);
 
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
-	red.entrenarBackPropagationConRefuerzo(&imagenes, &etiquetas, epocas);
+	red.entrenarBackPropagationConRefuerzo(&imagenes, &etiquetas, epocas, true);
 
 	red.guardarArchivo("_final");
 	
@@ -552,6 +573,11 @@ fn main()
 		- 12% de fallos (entranamiento) (datos sin normalizar)
 			256 ocultas
 			1 epocas + 2 epocas de refuerzo
+			0.1 tasa aprendizaje
+
+		- 12.04% de fallos (entranamiento) (datos sin normalizar)
+			300 ocultas
+			1 epocas + 13 epocas de refuerzo
 			0.1 tasa aprendizaje
 
 	*/
