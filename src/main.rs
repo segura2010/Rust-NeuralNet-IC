@@ -232,7 +232,7 @@ impl RedNeuronal
 		// El objetivo es entrenar una vez, probar los fallos y volver a entrenar tantan veces como "epocas"
 		// pero solamente con los fallos de la epoca anterior (hay que tener cuidado!)
 		let tasaInicial = self.tasaAprendizaje;
-		let tasaFinal = self.tasaAprendizaje * 0.001;
+		//let tasaFinal = self.tasaAprendizaje * 0.001;
 		self.entrenarBackPropagation(&entradas, &salidas, 1, restriccion);
 
 		for epoca in 0..epocas
@@ -259,8 +259,9 @@ impl RedNeuronal
 			println!("EPOCA {}:: Fallos: {} / Porcentaje Fallos: {}", epoca, fallos, porcentaje);
 
 			// entrenamos otra vez con los fallos pero con una tasa menor (reducida al 0.1%)
-			self.tasaAprendizaje = tasaFinal * (0.1 * epoca as f32);
+			self.tasaAprendizaje = self.tasaAprendizaje * 0.1;
 			self.entrenarBackPropagation(&falladasEntrada, &falladasSalida, 1, restriccion);
+			self.entrenarBackPropagation(&entradas, &salidas, 1, restriccion);
 		}
 
 		self.tasaAprendizaje = tasaInicial;
@@ -485,6 +486,23 @@ fn leerFicherosImagenes(ficheroImagenes: &str, ficheroEtiquetas: &str) -> (Vec< 
 	return ( imagenes, etiquetas );
 }
 
+// Funcion para meter ruido a las imagenes
+fn ruido(imagenes: &mut Vec<Vec<f32> >)
+{
+	for i in 0..imagenes.len()
+	{
+		for p in 0..imagenes[i].len()
+		{
+			if imagenes[i][p] < 80.0
+			{
+				let mut x = rand::random::<u8>();
+				//println!("{:?}", x);
+				imagenes[i][p] = x as f32;
+			}
+		}
+	}
+}
+
 fn main()
 {
 	/*
@@ -527,17 +545,20 @@ fn main()
 	let tuplaImagenes = leerFicherosImagenes("data/train_images", "data/train_labels");
 	let mut imagenes = tuplaImagenes.0;
 	let mut etiquetas = tuplaImagenes.1;
+	let mut imagenesConRuido = imagenes.clone();
+
+	ruido(&mut imagenesConRuido);
 
 	let entradas = imagenes[0].len() as i32;
 	let salidas = etiquetas[0].len() as i32;
 	let neuronasOcultas = 200;
 	let capasOcultas = 1;
-	let epocas = 30;
+	let epocas = 2;
 	let tasa = 0.1;
 	let mut red = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, tasa);
 
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
-	red.entrenarBackPropagationConRefuerzo(&imagenes, &etiquetas, epocas, false);
+	red.entrenarBackPropagationConRefuerzo(&imagenesConRuido, &etiquetas, epocas, false);
 	//red = red.leerArchivo("resultados_interesantes/0.00009000001_3_400_10_11.99porc.txt");
 
 	red.guardarArchivo("_final");
