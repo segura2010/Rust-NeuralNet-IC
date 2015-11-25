@@ -61,7 +61,7 @@ impl RedNeuronal
 	    for i in 0..entradas
 	    {
 	    	let x = rand::random::<f32>() - 0.5;
-	    	nn[0].push( Neuron{pesos:vec![x], error:0.0, salida:0.0, salidaSimple:0.0, bias:x} );
+	    	nn[0].push( Neuron{pesos:vec![x], error:0.0, salida:0.0, salidaSimple:0.0, bias:1.0} );
 	    }
 
 	    // creamos la capa(s) oculta(s)
@@ -81,7 +81,7 @@ impl RedNeuronal
 		    		pesos.push(x);
 		    	}
 		    	let capaAct = nn.len()-1;
-		    	nn[capaAct].push( Neuron{pesos:pesos, error:0.0, salida:0.0, salidaSimple:0.0, bias:0.5} );
+		    	nn[capaAct].push( Neuron{pesos:pesos, error:0.0, salida:0.0, salidaSimple:0.0, bias:1.0} );
 		    }
 		}
 
@@ -97,7 +97,7 @@ impl RedNeuronal
 	    		pesos.push(x);
 	    	}
 	    	let capaAct = nn.len()-1;
-	    	nn[capaAct].push( Neuron{pesos:pesos, error:0.0, salida:0.0, salidaSimple:0.0, bias:0.5} );
+	    	nn[capaAct].push( Neuron{pesos:pesos, error:0.0, salida:0.0, salidaSimple:0.0, bias:1.0} );
 	    }
 
 	    let mut red = RedNeuronal{ capas: nn, tasaAprendizaje: tasa};
@@ -218,7 +218,7 @@ impl RedNeuronal
 							}
 						} 
 						// y actualizamos la "bias"
-						self.capas[capaOculta][neuron].bias += self.tasaAprendizaje * self.capas[capaOculta][neuron].error;
+						//self.capas[capaOculta][neuron].bias += self.tasaAprendizaje * self.capas[capaOculta][neuron].error;
 					}
 				}
 			}
@@ -523,14 +523,14 @@ fn main()
 
 	
 	// PROBLEMA MNIST
-
+	
 	let tuplaImagenes = leerFicherosImagenes("data/train_images", "data/train_labels");
 	let mut imagenes = tuplaImagenes.0;
 	let mut etiquetas = tuplaImagenes.1;
 
 	let entradas = imagenes[0].len() as i32;
 	let salidas = etiquetas[0].len() as i32;
-	let neuronasOcultas = 400;
+	let neuronasOcultas = 200;
 	let capasOcultas = 1;
 	let epocas = 30;
 	let tasa = 0.1;
@@ -538,6 +538,7 @@ fn main()
 
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
 	red.entrenarBackPropagationConRefuerzo(&imagenes, &etiquetas, epocas, false);
+	//red = red.leerArchivo("resultados_interesantes/0.00009000001_3_400_10_11.99porc.txt");
 
 	red.guardarArchivo("_final");
 	
@@ -557,6 +558,33 @@ fn main()
 	let porcentaje = (fallos / (imagenes.len() as f32)) * 100.0;
 	println!("Fallos: {} / Porcentaje Fallos: {}", fallos, porcentaje);
 	
+
+
+	
+	// Imagenes Test
+	/*
+	let tuplaImagenes = leerFicherosImagenes("data/test_images", "data/test_labels");
+	let mut imagenes = tuplaImagenes.0;
+	let mut etiquetas = tuplaImagenes.1;
+
+	let mut red = RedNeuronal::new(0,0,0,0,0.0);
+	red = red.leerArchivo("resultados_interesantes/0.00009000001_3_400_10_11.99porc.txt");
+
+	let mut fallos = 0.0;
+	for imagen in 0..imagenes.len()
+	{
+		red.ejecutar(&imagenes[imagen]);
+		let salidaBuena = encontrarMayor(etiquetas[imagen].clone());
+		let salidaRed = encontrarMayor(red.salida().clone());
+		if salidaBuena != salidaRed
+		{
+			fallos = fallos + 1.0;
+		}
+	}
+
+	let porcentaje = (fallos / (imagenes.len() as f32)) * 100.0;
+	println!("Fallos: {} / Porcentaje Fallos: {}", fallos, porcentaje);
+	*/
 
 	/*
 	Algunos resultados:
