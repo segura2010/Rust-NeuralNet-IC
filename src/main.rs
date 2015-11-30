@@ -133,6 +133,19 @@ impl RedNeuronal
 			}
 		}
 
+		/* Probabilidad
+		let ultima = self.capas.len()-1;
+		let mut sum = 0.0;
+		for neuron in 0..self.capas[ultima].len()
+		{
+			sum += self.capas[ultima][neuron].salida;
+		}
+		for neuron in 0..self.capas[ultima].len()
+		{
+			self.capas[ultima][neuron].salida = self.capas[ultima][neuron].salida / sum;
+		}
+		*/
+
 		return self;
 	}
 
@@ -232,7 +245,7 @@ impl RedNeuronal
 		// El objetivo es entrenar una vez, probar los fallos y volver a entrenar tantan veces como "epocas"
 		// pero solamente con los fallos de la epoca anterior (hay que tener cuidado!)
 		let tasaInicial = self.tasaAprendizaje;
-		//let tasaFinal = self.tasaAprendizaje * 0.001;
+		let tasaFinal = self.tasaAprendizaje * 0.001;
 		self.entrenarBackPropagation(&entradas, &salidas, 1, restriccion);
 
 		for epoca in 0..epocas
@@ -259,8 +272,45 @@ impl RedNeuronal
 			println!("EPOCA {}:: Fallos: {} / Porcentaje Fallos: {}", epoca, fallos, porcentaje);
 
 			// entrenamos otra vez con los fallos pero con una tasa menor (reducida al 0.1%)
-			self.tasaAprendizaje = self.tasaAprendizaje * 0.1;
+			self.tasaAprendizaje = tasaFinal * (epoca as f32 * 0.1);
 			self.entrenarBackPropagation(&falladasEntrada, &falladasSalida, 1, restriccion);
+			//self.entrenarBackPropagation(&entradas, &salidas, 1, restriccion);
+		}
+
+		self.tasaAprendizaje = tasaInicial;
+
+		return self;
+	}
+
+	fn entrenarBackPropagationAdaptativo(&mut self, entradas: &Vec<Vec<f32> >, salidas: &Vec<Vec<f32> >, epocas:i32, restriccion:bool) -> &mut RedNeuronal
+	{
+		// El objetivo es entrenar una vez, probar los fallos y volver a entrenar tantan veces como "epocas"
+		// pero solamente con los fallos de la epoca anterior (hay que tener cuidado!)
+		let tasaInicial = self.tasaAprendizaje;
+		let tasaFinal = self.tasaAprendizaje * 0.001;
+		self.entrenarBackPropagation(&entradas, &salidas, 1, restriccion);
+
+		for epoca in 0..epocas
+		{
+			let mut fallos = 0f32;
+			// probamos el error
+			for e in 0..entradas.len()
+			{
+				self.ejecutar(&entradas[e]);
+				let salidaBuena = encontrarMayor(salidas[e].clone());
+				let salidaRed = encontrarMayor(self.salida().clone());
+				if salidaBuena != salidaRed
+				{
+					fallos = fallos + 1.0;
+				}
+			}
+			self.guardarArchivo(&epoca.to_string());
+
+			let porcentaje = (fallos / (entradas.len() as f32)) * 100.0;
+			println!("EPOCA {}:: Fallos: {} / Porcentaje Fallos: {}", epoca, fallos, porcentaje);
+
+			// entrenamos otra vez con los fallos pero con una tasa menor (reducida al 0.1%)
+			self.tasaAprendizaje = tasaFinal * (epoca as f32 * 0.1);
 			self.entrenarBackPropagation(&entradas, &salidas, 1, restriccion);
 		}
 
@@ -495,12 +545,18 @@ fn ruido(imagenes: &mut Vec<Vec<f32> >)
 		{
 			if imagenes[i][p] < 80.0
 			{
-				let mut x = rand::random::<u8>();
-				//println!("{:?}", x);
-				imagenes[i][p] = x as f32;
+				let mut x: f32 = generadorAleatorioPixel(0.0, 120.0);
+				imagenes[i][p] = x;
 			}
 		}
 	}
+}
+
+fn generadorAleatorioPixel(inicio: f32, fin: f32) -> f32
+{
+	let mut x = rand::random::<f32>();
+	x = (inicio - fin) * x + fin;
+	return x;
 }
 
 fn main()
@@ -553,12 +609,14 @@ fn main()
 	let salidas = etiquetas[0].len() as i32;
 	let neuronasOcultas = 200;
 	let capasOcultas = 1;
-	let epocas = 2;
+	let epocas = 10;
 	let tasa = 0.1;
 	let mut red = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, tasa);
 
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
-	red.entrenarBackPropagationConRefuerzo(&imagenesConRuido, &etiquetas, epocas, false);
+	//red.entrenarBackPropagationConRefuerzo(&imagenesConRuido, &etiquetas, epocas, false);
+	//red.entrenarBackPropagationConRefuerzo(&imagenes, &etiquetas, epocas, false);
+	red.entrenarBackPropagationAdaptativo(&imagenes, &etiquetas, epocas, false);
 	//red = red.leerArchivo("resultados_interesantes/0.00009000001_3_400_10_11.99porc.txt");
 
 	red.guardarArchivo("_final");
