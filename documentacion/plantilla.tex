@@ -1,0 +1,150 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Programming/Coding Assignment
+% LaTeX Template
+%
+% This template has been downloaded from:
+% http://www.latextemplates.com
+%
+% Original author:
+% Ted Pavlic (http://www.tedpavlic.com)
+%
+% Note:
+% The \lipsum[#] commands throughout this template generate dummy text
+% to fill the template out. These commands should all be removed when 
+% writing assignment content.
+%
+% This template uses a Perl script as an example snippet of code, most other
+% languages are also usable. Configure them in the "CODE INCLUSION 
+% CONFIGURATION" section.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass{article}
+
+\usepackage{fancyhdr} % Required for custom headers
+\usepackage{lastpage} % Required to determine the last page for the footer
+\usepackage{extramarks} % Required for headers and footers
+\usepackage[usenames,dvipsnames]{color} % Required for custom colors
+\usepackage{graphicx} % Required to insert images
+\usepackage{listings} % Required for insertion of code
+\usepackage{courier} % Required for the courier font
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+\usepackage{hyperref} % Hyperlink
+\usepackage{enumitem}
+
+\usepackage[utf8]{inputenc} % Para tildes!
+
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\linespread{1.1} % Line spacing
+
+% Set up the header and footer
+\pagestyle{fancy}
+\lhead{\hmwkAuthorName} % Top left header
+\rhead{\hmwkTitle - \hmwkTituloTarea} % Top center head
+\lfoot{\lastxmark} % Bottom left footer
+\cfoot{} % Bottom center footer
+\rfoot{Página\ \thepage\ de\ \protect\pageref{LastPage}} % Bottom right footer
+\renewcommand\headrulewidth{0.4pt} % Size of the header rule
+\renewcommand\footrulewidth{0.4pt} % Size of the footer rule
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT STRUCTURE COMMANDS
+%	Skip this unless you know what you're doing
+%----------------------------------------------------------------------------------------
+
+
+%----------------------------------------------------------------------------------------
+%	NAME AND CLASS SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\hmwkTitle}{Inteligencia Computacional} % Assignment title
+\newcommand{\hmwkSubtitulo}{Master en Ingeniería Informática} % Due date
+\newcommand{\hmwkDueDate}{Miércoles 9 de Diciembre de 2015} % Due date
+\newcommand{\hmwkTituloTarea}{Práctica 1: Redes Neuronales} % Class/lecture time
+\newcommand{\hmwkAuthorName}{Luis Alberto Segura Delgado} % Your name
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\title{
+\vspace{2in}
+\textmd{\textbf{\hmwkTitle}}\\
+\textmd{\textbf{\hmwkSubtitulo}}\\
+\normalsize\textbf{\\\hmwkTituloTarea}\\
+\vspace{0.1in}
+\vspace{3in}
+}
+
+\author{\textbf{\hmwkAuthorName}}
+\date{\hmwkDueDate} % Insert date here if you want it to appear below your name
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+\inputencoding{latin1}
+\maketitle
+
+
+%----------------------------------------------------------------------------------------
+%	PROBLEM 1
+%----------------------------------------------------------------------------------------
+
+% To have just one problem per page, simply put a \clearpage after each problem
+
+\newpage
+\tableofcontents
+
+\newpage
+
+\section{Introducción}
+En esta práctica el objetivo es familiarizarse con técnicas de aprendizaje basadas en Redes Neuronales para resolver un problema concreto, en este caso, el reconocimiento de patrones numericos.
+\\
+En clase se han visto las redes neuronales más básicas, las originales. Y a partir de estás se ha ido profundizando hasta conocer el funcionamiento y las mejoras que se han ido añadiendo para que sean capaces de resolver mejor y de forma más eficiente los problemas, resolviendo los problemas iniciales que se descubrieron en los modelos más básicos. De esta forma, ahora conocemos una técnica de aprendizaje automático más que podemos usar para aquellos problemas que se nos planteen en el futuro, siempre que aplicar redes neuronales sea una estrategia correcta para resolver el problema.
+
+\section{Implementación}
+El trabajo de implementación realizado ha sido principalmente desarrollar por mi mismo una red neuronal multicapa y entrenarla ajustando los diferentes parámetros (tasa de aprendizaje, neuronas de cada capa, capas ocultas..) de forma que se obtuviese la menor tasa de error en la clasificación de los ejemplos del problema propuesto.
+
+\subsection{Red Neuronal Multicapa Simple}
+En primer lugar se ha implementado una red neuronal multicapa sencilla. La implementación se ha realizado en un nuevo lenguaje de programación similar a C/C++ llamado $Rust$\footnote{\url{https://www.rust-lang.org}}. La implementación en detalle se puede ver en el código que se entrega junto a esta documentación.
+\\\\
+La implementación es sencilla, y nos permite crear una red neuronal con el número de capas ocultas que deseemos. Simplemente tenemos que indicar el número de entradas (neuronas de entrada), el número de capas ocultas, el número de neuronas ocultas (todas las capas tendrán el mismo número de neuronas), el número de salidas de la red y la tasa de aprendizaje de la red a la hora de entrenar con BackPropagation. Automáticamente se creará una red neuronal con la topología indicada. La inicialización de los pesos es aleatoria, con valores entre -0.5 y 0.5, y el término $bias$ se inicializa para todas las neuronas a 1.0.
+\\\\
+Una vez que tenemos nuestra red neuronal creada, ésta debe poder ser ejecutada, para ellos se implementa una función $ejecutar$ que simplemente realiza las operaciones de multiplicar pesos por entradas y acumularlos, y finalmente calcular la salida final de las neuronas (y) en base a la función de activación, que en este caso es la función $Sigmoide$.
+
+% https://en.wikibooks.org/wiki/LaTeX/Mathematics
+\begin{equation}
+	o = \sum _{ i=0 }^{ n }{ w_{ i }x_{ i } } +b_{ i }
+\end{equation}
+\begin{equation}
+	y = \frac { 1 }{ 1+{ e }^{ -o } } 
+\end{equation}
+
+Para cada neurona se calcula su salida aplicandole la función $Sigmoide$, haciendo propagación hacia delante, finalmente obtenemos la salida de la red para unas entrada determinadas.
+\\\\
+Y ya solamente quedaba implementar un método para entrenar nuestra red neuronal. Este método es BackPropagation. Después de pelear mucho con las fórmulas y su implementación, finalmente parece que está implementado correctamente y funciona. El método de entrenamiento concreto es un entrenamiento $online$, es decir, los pesos de las neuronas se actualizan cada vez que le pasamos una entrada (foto de dígito) en función del error cometido al clasificar. Como sabemos, cada vez que se le pasa una entrada, se ejecuta la red, de forma que obtenemos la salida de la red. Se calcula el error de la clasificación y se propaga hacia atrás a todas las neuronas de la red para actualizar sus pesos en la medida en la que afectan a la salida (al error que se produce).
+\\\\
+Una vez que tenemos esta red neuronal sencilla y su método de entrenamiento, solo queda ponerla a entrenar para empezar a obtener los primeros resultados. Tras una serie de experimentos y pruebas con diferentes configuraciones (tasa de aprendizaje, número de neuronas ocultas, etc), vimos que los errores no se reducían suficiente, solían quedar en torno al 20\%, por lo que se han implementado algunas mejoras que se nos han ocurrido para tratar de reducir el error (de entrenamiento).
+
+\subsection{Mejora en BackPropagation: \textit{BackPropagation con Refuerzo}}
+En primer lugar se nos ocurrió que, como nuestra red neuronal se quedaba atascada en un porcentaje de error en torno al 20\% para el conjunto de entrenamiento, quizás podríamos "forzar" la red a aprender aquellos ejemplos que parecía que le costaban más. Para ello, se implementó una modificación de BackPropagation (\textit{BackPropagation con Refuerzo}) que, en primer lugar, entrenaba una época\footnote{pasada de todos los datos de entrenamiento una vez (los dígitos 60000)}. Después de entrenar en una época solamente, se calcula la tasa de error y se guardan los ejemplos en los que se ha equivocado. Y a continuación, se entrena una época usando solamente los ejemplos en los que ha fallado. Para este nuevo entrenamiento que solamente usa los ejemplo erróneos, la tasa de error se reduce para evitar que se "olviden" los ejemplos que ya se aprendieron. El entrenamiento con los ejemplos erróneos se realiza tantas veces como se indique. De forma que, una vez que se entrena la primera vez con salidas falladas, se vuelve a calcular el error y se guardan los nuevos errores, para entrenar con los nuevos errores solamente, y en cada iteración (época de refuerzo) se reduce progresivamente la tasa de error (esto de reducir la tasa de error parece funcionar bastante bien).
+\\\\
+Con este método de entrenamiento, nuestra red neuronal mostró mejoras, reduciendo su tasa de error en el conjunto de entrenamiento del 20\% hasta un 11\%. Buscando mejorar aún más la tasa de error (pues aún era alta), se implementaron nuevas ideas.
+
+\subsection{Mejora en BackPropagation: \textit{BackPropagation Adaptativo}}
+
+\end{document}

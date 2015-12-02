@@ -543,7 +543,8 @@ fn ruido(imagenes: &mut Vec<Vec<f32> >)
 	{
 		for p in 0..imagenes[i].len()
 		{
-			if imagenes[i][p] < 80.0
+			let mut prob = rand::random::<f32>();
+			if imagenes[i][p] < 20.0 && prob < 0.2
 			{
 				let mut x: f32 = generadorAleatorioPixel(0.0, 120.0);
 				imagenes[i][p] = x;
@@ -616,7 +617,7 @@ fn main()
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
 	//red.entrenarBackPropagationConRefuerzo(&imagenesConRuido, &etiquetas, epocas, false);
 	//red.entrenarBackPropagationConRefuerzo(&imagenes, &etiquetas, epocas, false);
-	red.entrenarBackPropagationAdaptativo(&imagenes, &etiquetas, epocas, false);
+	red.entrenarBackPropagationAdaptativo(&imagenesConRuido, &etiquetas, epocas, false);
 	//red = red.leerArchivo("resultados_interesantes/0.00009000001_3_400_10_11.99porc.txt");
 
 	red.guardarArchivo("_final");
