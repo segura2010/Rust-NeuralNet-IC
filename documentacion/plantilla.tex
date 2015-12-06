@@ -77,6 +77,15 @@
 \newcommand{\hmwkTituloTarea}{Práctica 1: Redes Neuronales} % Class/lecture time
 \newcommand{\hmwkAuthorName}{Luis Alberto Segura Delgado} % Your name
 
+% Tabla contenidos nombre
+\renewcommand{\contentsname}{Índice}
+
+% nombre figuras
+\renewcommand{\figurename}{Figura }
+
+% nombre tablas
+\renewcommand{\tablename}{Tabla }
+
 %----------------------------------------------------------------------------------------
 %	TITLE PAGE
 %----------------------------------------------------------------------------------------
@@ -107,6 +116,7 @@
 % To have just one problem per page, simply put a \clearpage after each problem
 
 \newpage
+
 \tableofcontents
 
 \newpage
@@ -168,19 +178,19 @@ Después de realizar todas las modificaciones comentadas y de probar diferentes p
 
 \begin{table}[!ht]
 \centering
-\caption{\textbf{Resutlados}}
+\caption{\textbf{Resultados}}
 \label{}
 \begin{tabular}{ p{4cm}  | c | c | c | c | c | c }
 \textbf{Algoritmo} & \textbf{Épocas} & \textbf{Capas Ocultas} & \textbf{Neuronas Ocultas} & \textbf{$\eta$} & \textbf{E.Entren.} & \textbf{E.Test} \\ \hline \hline
-BackPropagtion Simple & 2 & 1 & 200 & 0.1 & 19.95\% & ?? \\ \hline
-BackPropagtion Simple & 5 & 1 & 256 & 0.1 & 12.11\% & ?? \\ \hline
-BackPropagtion Refuerzo & 7  & 1 & 256 & 0.1 & 11.98\% & ?? \\ \hline
-BackPropagation Refuerzo & 13 & 1 & 300 & 0.1 & 12.04\% & ?? \\ \hline
-BackPropagation Refuerzo & 3 & 1 & 256 & 0.1 & 12.18\% & ?? \\ \hline
-BackPropagation Refuerzo & 10 & 1 & 400 & 0.1 & 11.99\% & ??\% \\ \hline
+BackPropagation Simple & 3 & 1 & 200 & 0.1 & 19.95\% & 18.81\% \\ \hline
+BackPropagation Refuerzo & 3 & 1 & 300 & 0.1 & 12.048\% & 10.95\% \\ \hline
+BackPropagation Refuerzo & 3 & 1 & 256 & 0.1 & 12.83\% & 12.07\% \\ \hline
+BackPropagation Refuerzo & 10 & 1 & 400 & 0.1 & 11.99\% & 11.24\% \\ \hline
 BackPropagation Refuerzo Con ruido & 3 & 1 & 200 & 0.1 & 11.94\% & 11.15\% \\ \hline
 BackPropagation Refuerzo Con ruido & 2 & 1 & 400 & 0.1 & 10.62\% & 10.1\% \\ \hline
 \end{tabular}
 \end{table}
+
+Estos son algunos de los mejores resultados que he obtenido con mi implementación sencilla de red neuronal. El mejor es el que se consigue con el mayor número de neuronas ocultas y usando los datos con ruido generados. Estos resultados se han conseguido después de muchos experimentos modificando los parámetros, principalmente la tasa de error, para ajustarla de forma que el error se redujese lo máximo posible.
 
 \end{document}

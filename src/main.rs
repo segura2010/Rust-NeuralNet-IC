@@ -171,7 +171,7 @@ impl RedNeuronal
 	}
 
 	fn entrenarBackPropagation(&mut self, entradas: &Vec<Vec<f32> >, salidas: &Vec<Vec<f32> >, epocas:i32, restriccion:bool) -> &mut RedNeuronal
-	{
+	{	// Online (actualizacion en cada entrada)
 		for epoca in 0..epocas
 		{
 			//rand::thread_rng().shuffle(entradas.clone().as_mut_slice());
@@ -233,6 +233,87 @@ impl RedNeuronal
 						} 
 						// y actualizamos la "bias"
 						//self.capas[capaOculta][neuron].bias += self.tasaAprendizaje * self.capas[capaOculta][neuron].error;
+					}
+				}
+			}
+		}
+
+		return self;
+	}
+
+	fn entrenarBackPropagationLotes(&mut self, entradas: &Vec<Vec<f32> >, salidas: &Vec<Vec<f32> >, epocas:i32, restriccion:bool, tamLote:i32) -> &mut RedNeuronal
+	{	// por lotes (actualizacion cada X entradas)
+		for epoca in 0..epocas
+		{
+			//rand::thread_rng().shuffle(entradas.clone().as_mut_slice());
+			for entrada in 0..entradas.len()
+			{
+				let mut esFinLote = ((entrada as i32) % tamLote) == 0 || entrada == entradas.len()-1;
+				// Ejecuto la red
+				self.ejecutar(&entradas[entrada]);
+
+				//println!("ENTRADA: {} {}", entrada, esFinLote);
+
+				// Ahora, calculamos el error de la capa de salida y actualizamos sus pesos
+				let mut capaSalida = self.capas.len()-1;
+				for neuron in 0..self.capas[capaSalida].len()
+				{
+					// Reinicia los errores, este es un nuevo lote
+					if esFinLote
+					{
+						self.capas[capaSalida][neuron].error = 0.0;
+					}
+
+					self.capas[capaSalida][neuron].error += (salidas[entrada][neuron] - self.capas[capaSalida][neuron].salida) * derivadaSigmoide(self.capas[capaSalida][neuron].salida);
+
+					for peso in 0..self.capas[capaSalida][neuron].pesos.len()
+					{
+						//println!("neuron {} / peso {} / pesos {} / neuronas ant {}", neuron, peso, self.capas[capaSalida][neuron].pesos.len(), self.capas[capaSalida-1].len());
+						self.capas[capaSalida][neuron].pesos[peso] += self.tasaAprendizaje * self.capas[capaSalida][neuron].error * self.capas[capaSalida-1][peso].salida;
+					}
+				}
+
+				// Ahora, calculamos el error de la capa de oculta y actualizamos sus pesos
+				//let mut capaOculta = 1;
+				for capaOculta in 1..self.capas.len()-1
+				{
+					for neuron in 0..self.capas[capaOculta].len()
+					{
+						// el error de esta neurona sera: error de cada neurona de la siguiente capa * cada peso (acumulado)
+						let mut errorAcumulado = 0f32;
+						let capaSiguiente = capaOculta + 1;
+						let capaAnterior = capaOculta - 1;
+						for n in 0..self.capas[capaSiguiente].len()
+						{
+							for peso in 0..self.capas[capaOculta][neuron].pesos.len()
+							{
+								errorAcumulado += self.capas[capaSiguiente][n].error * self.capas[capaOculta][neuron].pesos[peso];
+							}
+						}
+						// Finalmente, el error del neuron sera el acumulado * derivada de la funcion para la salida de este neuron
+						self.capas[capaOculta][neuron].error = errorAcumulado * derivadaSigmoide(self.capas[capaOculta][neuron].salida);
+						
+						if esFinLote
+						{	// si es el final del lote
+							// Una vez que tenemos el error propagado a este neuron, calculamos los nuevos pesos
+							for peso in 0..self.capas[capaOculta][neuron].pesos.len()
+							{
+								self.capas[capaOculta][neuron].pesos[peso] += self.tasaAprendizaje * self.capas[capaOculta][neuron].error * self.capas[capaAnterior][peso].salida;
+								if restriccion 
+								{
+									if self.capas[capaOculta][neuron].pesos[peso] > 0.5
+									{
+										self.capas[capaOculta][neuron].pesos[peso] = 0.5;
+									}
+									else if self.capas[capaOculta][neuron].pesos[peso] < -0.5
+									{
+										self.capas[capaOculta][neuron].pesos[peso] = -0.5;
+									}
+								}
+							} 
+							// y actualizamos la "bias"
+							//self.capas[capaOculta][neuron].bias += self.tasaAprendizaje * self.capas[capaOculta][neuron].error;
+						}
 					}
 				}
 			}
@@ -634,9 +715,10 @@ fn main()
 
 	let entradas = imagenes[0].len() as i32;
 	let salidas = etiquetas[0].len() as i32;
-	let neuronasOcultas = 400;
+	let neuronasOcultas = 600;
 	let capasOcultas = 1;
 	let epocas = 10;
+	let tamLote = 20;
 	let tasa = 0.1;
 	let mut red = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, tasa);
 
@@ -645,11 +727,12 @@ fn main()
 	//red.entrenarBackPropagationConRefuerzo(&imagenes, &etiquetas, epocas, false);
 	//red.entrenarBackPropagationAdaptativo(&imagenes, &etiquetas, epocas, false);
 	//red.entrenarBackPropagationAdaptativo(&imagenesConRuido, &etiquetas, epocas, false);
-	//red.entrenarBackPropagationConRefuerzo(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false);
+	red.entrenarBackPropagationConRefuerzo(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false);
+	//red.entrenarBackPropagationLotes(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false, tamLote);
 	
-	red = red.leerArchivo("resultados_interesantes/0.000088256675_3_400_2_10.62porc_ruido.txt");
-
 	red.guardarArchivo("_final");
+
+	//red = red.leerArchivo("resultados_interesantes/0.1_3_200__final_porc_19.95_ruido.txt");
 	
 	// probando la red entrenamiento
 	let mut fallos = 0f32;
