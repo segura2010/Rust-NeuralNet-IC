@@ -146,5 +146,41 @@ En primer lugar se nos ocurrió que, como nuestra red neuronal se quedaba atascad
 Con este método de entrenamiento, nuestra red neuronal mostró mejoras, reduciendo su tasa de error en el conjunto de entrenamiento del 20\% hasta un 11\%. Buscando mejorar aún más la tasa de error (pues aún era alta), se implementaron nuevas ideas.
 
 \subsection{Mejora en BackPropagation: \textit{BackPropagation Adaptativo}}
+Como en el BackPropagation con refuerzo parecía dar buenos resultados ir reduciendo progresivamente la tasa de aprendizaje ($\eta$) con forme avanzamos de época, surgió la idea de utilizar esta idea pero sobre todo el conjunto de entrenamiento. De esta forma, lo que se hacía era hacer un entrenamiento \textit{online} en el que en cada época, se reducía la tasa de error, de forma que los "saltos" hacía la solución óptima fuesen más pequeños conforme nos acercamos a ésta. En todas las épocas se usaba el conjunto completo de entrenamiento (esta es la diferencia real entre la mejora anterior y esta). La reducción de la tasa de aprendizaje se fijó finalmente como sigue:
+
+\begin{equation}
+	\eta_{e+1} = \eta_e (e * 0.1)
+\end{equation}
+
+Con la esperanza de que los resultados mejorasen, se probaron diferentes formas de ir actualizando la tasa de aprendizaje en cada época, y la que mejor pareció funcionar fue la fórmula anterior. Aún así, los resultados no mejoraron demasiado y la tasa de error se mantuvo en torno al 11-12\%.
+
+
+\subsection{Generando Ruido}
+Otra de las cosas que se ha probado ha sido introducir ruido en los datos, pues como vimos en clase, nos puede ayudar a que nuestra red aprenda características (patrones) más generales quitando de en medio la información que realmente no es útil, y que, al haber limpiado los datos ya no se distingue de los patrones que realmente podrían interesarnos. Por ejemplo, al limpiar las imágenes, los fondos y las esquinas son todas negras, lo que puede llevar a la red a aprender patrones relacionados con las esquinas, cuando no es lo que queremos pues no es la información importante. Al introducir ruido, las esquinas variarán y obviará esos patrones (ya que no existirán).
+\\
+Para introducir ruido, se elige al azar los pixels y el nivel de ruido. Si el pixel tiene un valor menor a 20, se cambia su valor con probabilidad del 2\%, a un nuevo valor de entre 0 y 120. Además, el entrenamiento se hace ahora con el doble de datos, pues tenemos la imagen original y una nueva imagen (que es una copia) a la que se le ha introducido ruido.
+\\
+Los resultados mejoraron, pero no demasiado, pues como se verá en los resultados, seguía en torno al 10-11\%.
+
+
+\section{Resultados}
+Después de realizar todas las modificaciones comentadas y de probar diferentes parámetros para ellas, se han obtenido varios resultados, algunos de los mejores son los siguientes.\footnote{Los experimentos con ruido se realizan con el doble de datos (imagen original + copia con ruido, para cada imagen).} \\
+
+\begin{table}[!ht]
+\centering
+\caption{\textbf{Resutlados}}
+\label{}
+\begin{tabular}{ p{4cm}  | c | c | c | c | c | c }
+\textbf{Algoritmo} & \textbf{Épocas} & \textbf{Capas Ocultas} & \textbf{Neuronas Ocultas} & \textbf{$\eta$} & \textbf{E.Entren.} & \textbf{E.Test} \\ \hline \hline
+BackPropagtion Simple & 2 & 1 & 200 & 0.1 & 19.95\% & ?? \\ \hline
+BackPropagtion Simple & 5 & 1 & 256 & 0.1 & 12.11\% & ?? \\ \hline
+BackPropagtion Refuerzo & 7  & 1 & 256 & 0.1 & 11.98\% & ?? \\ \hline
+BackPropagation Refuerzo & 13 & 1 & 300 & 0.1 & 12.04\% & ?? \\ \hline
+BackPropagation Refuerzo & 3 & 1 & 256 & 0.1 & 12.18\% & ?? \\ \hline
+BackPropagation Refuerzo & 10 & 1 & 400 & 0.1 & 11.99\% & ??\% \\ \hline
+BackPropagation Refuerzo Con ruido & 3 & 1 & 200 & 0.1 & 11.94\% & 11.15\% \\ \hline
+BackPropagation Refuerzo Con ruido & 2 & 1 & 400 & 0.1 & 10.62\% & 10.1\% \\ \hline
+\end{tabular}
+\end{table}
 
 \end{document}

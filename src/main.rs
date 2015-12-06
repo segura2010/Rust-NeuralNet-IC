@@ -9,6 +9,7 @@
 extern crate rand;
 use rand::Rng;
 
+
 use std::thread;
 
 use std::error::Error;
@@ -268,11 +269,12 @@ impl RedNeuronal
 			}
 			self.guardarArchivo(&epoca.to_string());
 
-			let porcentaje = (fallos / (entradas.len() as f32)) * 100.0;
+			let tantoPorUno = (fallos / (entradas.len() as f32));
+			let porcentaje = tantoPorUno * 100.0;
 			println!("EPOCA {}:: Fallos: {} / Porcentaje Fallos: {}", epoca, fallos, porcentaje);
 
 			// entrenamos otra vez con los fallos pero con una tasa menor (reducida al 0.1%)
-			self.tasaAprendizaje = tasaFinal * (epoca as f32 * 0.1);
+			self.tasaAprendizaje = tasaFinal * (epoca as f32 * (1.0 - tantoPorUno));
 			self.entrenarBackPropagation(&falladasEntrada, &falladasSalida, 1, restriccion);
 			//self.entrenarBackPropagation(&entradas, &salidas, 1, restriccion);
 		}
@@ -306,11 +308,12 @@ impl RedNeuronal
 			}
 			self.guardarArchivo(&epoca.to_string());
 
-			let porcentaje = (fallos / (entradas.len() as f32)) * 100.0;
+			let tantoPorUno = (fallos / (entradas.len() as f32));
+			let porcentaje = tantoPorUno * 100.0;
 			println!("EPOCA {}:: Fallos: {} / Porcentaje Fallos: {}", epoca, fallos, porcentaje);
 
 			// entrenamos otra vez con los fallos pero con una tasa menor (reducida al 0.1%)
-			self.tasaAprendizaje = tasaFinal * (epoca as f32 * 0.1);
+			self.tasaAprendizaje = tasaFinal * (epoca as f32 * (1.0 - tantoPorUno));
 			self.entrenarBackPropagation(&entradas, &salidas, 1, restriccion);
 		}
 
@@ -560,6 +563,28 @@ fn generadorAleatorioPixel(inicio: f32, fin: f32) -> f32
 	return x;
 }
 
+fn generadorAleatorioEntero(inicio: i32, fin: i32) -> i32
+{
+	let mut rng = rand::IsaacRng::new_unseeded();
+	let mut x = rng.gen_range(inicio, fin);
+	return x;
+}
+
+fn mezclarVectores(v1: &Vec<Vec<f32> >, v2: &Vec<Vec<f32> >,  etiquetas: &Vec< Vec<f32> >) -> (Vec< Vec<f32> >, Vec< Vec<f32> >)
+{
+	let mut salida:Vec<Vec<f32> > = v1.clone();
+	let mut salidaEtiquetas:Vec< Vec<f32> > = etiquetas.clone();
+
+	for i in 0..v2.len()
+	{
+		let r = generadorAleatorioEntero(0, (salida.len()-1) as i32);
+		salida.insert(r as usize, v2[i].clone());
+		salidaEtiquetas.insert(r as usize, etiquetas[i].clone());
+	}
+
+	return (salida, salidaEtiquetas);
+}
+
 fn main()
 {
 	/*
@@ -603,12 +628,13 @@ fn main()
 	let mut imagenes = tuplaImagenes.0;
 	let mut etiquetas = tuplaImagenes.1;
 	let mut imagenesConRuido = imagenes.clone();
+	let mut imagesRuidoYOriginales = mezclarVectores(&imagenes, &imagenesConRuido, &etiquetas);
 
 	ruido(&mut imagenesConRuido);
 
 	let entradas = imagenes[0].len() as i32;
 	let salidas = etiquetas[0].len() as i32;
-	let neuronasOcultas = 200;
+	let neuronasOcultas = 400;
 	let capasOcultas = 1;
 	let epocas = 10;
 	let tasa = 0.1;
@@ -617,12 +643,15 @@ fn main()
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
 	//red.entrenarBackPropagationConRefuerzo(&imagenesConRuido, &etiquetas, epocas, false);
 	//red.entrenarBackPropagationConRefuerzo(&imagenes, &etiquetas, epocas, false);
-	red.entrenarBackPropagationAdaptativo(&imagenesConRuido, &etiquetas, epocas, false);
-	//red = red.leerArchivo("resultados_interesantes/0.00009000001_3_400_10_11.99porc.txt");
+	//red.entrenarBackPropagationAdaptativo(&imagenes, &etiquetas, epocas, false);
+	//red.entrenarBackPropagationAdaptativo(&imagenesConRuido, &etiquetas, epocas, false);
+	//red.entrenarBackPropagationConRefuerzo(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false);
+	
+	red = red.leerArchivo("resultados_interesantes/0.000088256675_3_400_2_10.62porc_ruido.txt");
 
 	red.guardarArchivo("_final");
 	
-	// probando la red
+	// probando la red entrenamiento
 	let mut fallos = 0f32;
 	for imagen in 0..imagenes.len()
 	{
@@ -637,6 +666,27 @@ fn main()
 
 	let porcentaje = (fallos / (imagenes.len() as f32)) * 100.0;
 	println!("Fallos: {} / Porcentaje Fallos: {}", fallos, porcentaje);
+
+
+
+	// probando la red test
+	let tuplaImagenes = leerFicherosImagenes("data/test_images", "data/test_labels");
+	let mut imagenes = tuplaImagenes.0;
+	let mut etiquetas = tuplaImagenes.1;
+	let mut fallos = 0f32;
+	for imagen in 0..imagenes.len()
+	{
+		red.ejecutar(&imagenes[imagen]);
+		let salidaBuena = encontrarMayor(etiquetas[imagen].clone());
+		let salidaRed = encontrarMayor(red.salida().clone());
+		if salidaBuena != salidaRed
+		{
+			fallos = fallos + 1.0;
+		}
+	}
+
+	let porcentaje = (fallos / (imagenes.len() as f32)) * 100.0;
+	println!("[TEST] Fallos: {} / Porcentaje Fallos: {}", fallos, porcentaje);
 	
 
 
@@ -687,6 +737,14 @@ fn main()
 			300 ocultas
 			1 epocas + 13 epocas de refuerzo
 			0.1 tasa aprendizaje
+
+
+		- EPOCA 3:: Fallos: 14338 / Porcentaje Fallos: 11.948334 (ruido+orig)
+			200 ocultas
+
+		- EPOCA 2:: Fallos: 12752 / Porcentaje Fallos: 10.626667 (ruido+orig)
+			400 ocultas
+			BackPropagation Refuerzo Con ruido & 3 & 1 & 400 & 0.1 & 10.62\% & 10.1\% \\ \hline
 
 	*/
 
