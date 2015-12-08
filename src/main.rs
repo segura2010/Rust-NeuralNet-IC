@@ -717,22 +717,22 @@ fn main()
 	let salidas = etiquetas[0].len() as i32;
 	let neuronasOcultas = 600;
 	let capasOcultas = 1;
-	let epocas = 10;
-	let tamLote = 20;
-	let tasa = 0.1;
+	let epocas = 5;
+	let tamLote = 100;
+	let tasa = 0.03;
 	let mut red = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, tasa);
 
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
 	//red.entrenarBackPropagationConRefuerzo(&imagenesConRuido, &etiquetas, epocas, false);
 	//red.entrenarBackPropagationConRefuerzo(&imagenes, &etiquetas, epocas, false);
 	//red.entrenarBackPropagationAdaptativo(&imagenes, &etiquetas, epocas, false);
-	//red.entrenarBackPropagationAdaptativo(&imagenesConRuido, &etiquetas, epocas, false);
+	//red.entrenarBackPropagationAdaptativo(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false);
 	red.entrenarBackPropagationConRefuerzo(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false);
-	//red.entrenarBackPropagationLotes(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false, tamLote);
+	//red.entrenarBackPropagationLotes(&imagenes, &etiquetas, epocas, false, tamLote);
 	
 	red.guardarArchivo("_final");
 
-	//red = red.leerArchivo("resultados_interesantes/0.1_3_200__final_porc_19.95_ruido.txt");
+	//red = red.leerArchivo("resultados_interesantes/0.00004459667_3_600_2_10.16porc.txt");
 	
 	// probando la red entrenamiento
 	let mut fallos = 0f32;
@@ -828,6 +828,10 @@ fn main()
 		- EPOCA 2:: Fallos: 12752 / Porcentaje Fallos: 10.626667 (ruido+orig)
 			400 ocultas
 			BackPropagation Refuerzo Con ruido & 3 & 1 & 400 & 0.1 & 10.62\% & 10.1\% \\ \hline
+
+		- EPOCA 2:: [TEST] Fallos: 974 / Porcentaje Fallos: 9.74 (ruido + orig)
+			600 ocultas
+			Refuerzo con ruido & 2 & 1 & 600 & 0.1 & 10.55\% & 9.74\% \\ \hline
 
 	*/
 

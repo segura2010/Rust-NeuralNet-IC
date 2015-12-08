@@ -81,10 +81,10 @@
 \renewcommand{\contentsname}{Índice}
 
 % nombre figuras
-\renewcommand{\figurename}{Figura }
+\renewcommand{\figurename}{Figura}
 
 % nombre tablas
-\renewcommand{\tablename}{Tabla }
+\renewcommand{\tablename}{Tabla}
 
 %----------------------------------------------------------------------------------------
 %	TITLE PAGE
@@ -188,9 +188,13 @@ BackPropagation Refuerzo & 3 & 1 & 256 & 0.1 & 12.83\% & 12.07\% \\ \hline
 BackPropagation Refuerzo & 10 & 1 & 400 & 0.1 & 11.99\% & 11.24\% \\ \hline
 BackPropagation Refuerzo Con ruido & 3 & 1 & 200 & 0.1 & 11.94\% & 11.15\% \\ \hline
 BackPropagation Refuerzo Con ruido & 2 & 1 & 400 & 0.1 & 10.62\% & 10.1\% \\ \hline
+BackPropagation Refuerzo Con ruido & 2 & 1 & 600 & 0.07 & 10.55\% & 9.74\% \\ \hline
+BackPropagation Refuerzo Con ruido & 2 & 1 & 600 & 0.05 & 10.16\% & 9.6\% \\ \hline
 \end{tabular}
 \end{table}
 
 Estos son algunos de los mejores resultados que he obtenido con mi implementación sencilla de red neuronal. El mejor es el que se consigue con el mayor número de neuronas ocultas y usando los datos con ruido generados. Estos resultados se han conseguido después de muchos experimentos modificando los parámetros, principalmente la tasa de error, para ajustarla de forma que el error se redujese lo máximo posible.
+\\\\
+Como podemos ver en estos resultados, la tasa de aprendizaje es relativamente alta, y podemos ver el efecto de \textit{Early Stopping}. Como vemos, la tasa de error sobre los datos de entrenamiento es mayor que la tasa de error sobre los datos de test. Esto es uno de los efectos del Early Stopping, no sobreaprendemos los datos de entrenamiento y obtenemos una red neuronal más general, lo que permite que frente a los datos de test funcionen mejor las generalizaciones que ha realizado.
 
 \end{document}
