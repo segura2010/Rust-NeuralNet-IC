@@ -715,11 +715,11 @@ fn main()
 
 	let entradas = imagenes[0].len() as i32;
 	let salidas = etiquetas[0].len() as i32;
-	let neuronasOcultas = 600;
+	let neuronasOcultas = 1000;
 	let capasOcultas = 1;
-	let epocas = 5;
+	let epocas = 7;
 	let tamLote = 100;
-	let tasa = 0.03;
+	let tasa = 0.1;
 	let mut red = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, tasa);
 
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
