@@ -3,5 +3,5 @@
 \contentsline {subsection}{\numberline {2.1}Red Neuronal Multicapa Simple}{3}{subsection.2.1}
 \contentsline {subsection}{\numberline {2.2}Mejora en BackPropagation: \textit {BackPropagation con Refuerzo}}{4}{subsection.2.2}
 \contentsline {subsection}{\numberline {2.3}Mejora en BackPropagation: \textit {BackPropagation Adaptativo}}{4}{subsection.2.3}
-\contentsline {subsection}{\numberline {2.4}Generando Ruido}{4}{subsection.2.4}
+\contentsline {subsection}{\numberline {2.4}Generando Ruido}{5}{subsection.2.4}
 \contentsline {section}{\numberline {3}Resultados}{5}{section.3}

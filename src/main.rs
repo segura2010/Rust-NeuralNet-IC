@@ -9,7 +9,7 @@
 extern crate rand;
 use rand::Rng;
 
-
+use std::sync::{Arc, Mutex};
 use std::thread;
 
 use std::error::Error;
@@ -22,7 +22,9 @@ use std::mem;
 use std::ops::Rem;
 use std::env;
 
+
 #[warn(non_snake_case)]
+#[derive(Debug, Clone)]
 struct Neuron
 {
 	pesos: Vec<f32>,
@@ -245,7 +247,6 @@ impl RedNeuronal
 	{	// por lotes (actualizacion cada X entradas)
 		for epoca in 0..epocas
 		{
-			//rand::thread_rng().shuffle(entradas.clone().as_mut_slice());
 			for entrada in 0..entradas.len()
 			{
 				let mut esFinLote = ((entrada as i32) % tamLote) == 0 || entrada == entradas.len()-1;
@@ -266,10 +267,13 @@ impl RedNeuronal
 
 					self.capas[capaSalida][neuron].error += (salidas[entrada][neuron] - self.capas[capaSalida][neuron].salida) * derivadaSigmoide(self.capas[capaSalida][neuron].salida);
 
-					for peso in 0..self.capas[capaSalida][neuron].pesos.len()
-					{
-						//println!("neuron {} / peso {} / pesos {} / neuronas ant {}", neuron, peso, self.capas[capaSalida][neuron].pesos.len(), self.capas[capaSalida-1].len());
-						self.capas[capaSalida][neuron].pesos[peso] += self.tasaAprendizaje * self.capas[capaSalida][neuron].error * self.capas[capaSalida-1][peso].salida;
+					if esFinLote
+					{	// Actualiza los pesos
+						for peso in 0..self.capas[capaSalida][neuron].pesos.len()
+						{
+							//println!("neuron {} / peso {} / pesos {} / neuronas ant {}", neuron, peso, self.capas[capaSalida][neuron].pesos.len(), self.capas[capaSalida-1].len());
+							self.capas[capaSalida][neuron].pesos[peso] += self.tasaAprendizaje * self.capas[capaSalida][neuron].error * self.capas[capaSalida-1][peso].salida;
+						}
 					}
 				}
 
@@ -717,9 +721,9 @@ fn main()
 	let salidas = etiquetas[0].len() as i32;
 	let neuronasOcultas = 1000;
 	let capasOcultas = 1;
-	let epocas = 7;
-	let tamLote = 100;
-	let tasa = 0.1;
+	let epocas = 10;
+	let tamLote = 2000;
+	let tasa = 0.05;
 	let mut red = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, tasa);
 
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
@@ -728,11 +732,11 @@ fn main()
 	//red.entrenarBackPropagationAdaptativo(&imagenes, &etiquetas, epocas, false);
 	//red.entrenarBackPropagationAdaptativo(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false);
 	red.entrenarBackPropagationConRefuerzo(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false);
-	//red.entrenarBackPropagationLotes(&imagenes, &etiquetas, epocas, false, tamLote);
+	//red.entrenarBackPropagationLotes(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false, tamLote);
 	
-	red.guardarArchivo("_final");
+	//red.guardarArchivo("_final");
 
-	//red = red.leerArchivo("resultados_interesantes/0.00004459667_3_600_2_10.16porc.txt");
+	//red = red.leerArchivo("resultados_interesantes/0.000071773335_3_600_3_10.20porc.txt");
 	
 	// probando la red entrenamiento
 	let mut fallos = 0f32;
