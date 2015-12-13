@@ -719,7 +719,7 @@ fn main()
 
 	let entradas = imagenes[0].len() as i32;
 	let salidas = etiquetas[0].len() as i32;
-	let neuronasOcultas = 1000;
+	let neuronasOcultas = 2000;
 	let capasOcultas = 1;
 	let epocas = 10;
 	let tamLote = 2000;
@@ -734,7 +734,7 @@ fn main()
 	red.entrenarBackPropagationConRefuerzo(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false);
 	//red.entrenarBackPropagationLotes(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false, tamLote);
 	
-	//red.guardarArchivo("_final");
+	red.guardarArchivo("_final");
 
 	//red = red.leerArchivo("resultados_interesantes/0.000071773335_3_600_3_10.20porc.txt");
 	
@@ -775,33 +775,6 @@ fn main()
 	let porcentaje = (fallos / (imagenes.len() as f32)) * 100.0;
 	println!("[TEST] Fallos: {} / Porcentaje Fallos: {}", fallos, porcentaje);
 	
-
-
-	
-	// Imagenes Test
-	/*
-	let tuplaImagenes = leerFicherosImagenes("data/test_images", "data/test_labels");
-	let mut imagenes = tuplaImagenes.0;
-	let mut etiquetas = tuplaImagenes.1;
-
-	let mut red = RedNeuronal::new(0,0,0,0,0.0);
-	red = red.leerArchivo("resultados_interesantes/0.00009000001_3_400_10_11.99porc.txt");
-
-	let mut fallos = 0.0;
-	for imagen in 0..imagenes.len()
-	{
-		red.ejecutar(&imagenes[imagen]);
-		let salidaBuena = encontrarMayor(etiquetas[imagen].clone());
-		let salidaRed = encontrarMayor(red.salida().clone());
-		if salidaBuena != salidaRed
-		{
-			fallos = fallos + 1.0;
-		}
-	}
-
-	let porcentaje = (fallos / (imagenes.len() as f32)) * 100.0;
-	println!("Fallos: {} / Porcentaje Fallos: {}", fallos, porcentaje);
-	*/
 
 	/*
 	Algunos resultados:
