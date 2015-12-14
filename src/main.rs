@@ -712,21 +712,23 @@ fn main()
 	let tuplaImagenes = leerFicherosImagenes("data/train_images", "data/train_labels");
 	let mut imagenes = tuplaImagenes.0;
 	let mut etiquetas = tuplaImagenes.1;
-	let mut imagenesConRuido = imagenes.clone();
-	let mut imagesRuidoYOriginales = mezclarVectores(&imagenes, &imagenesConRuido, &etiquetas);
 
+	// Ruido
+	let mut imagenesConRuido = imagenes.clone();
 	ruido(&mut imagenesConRuido);
+	let mut imagesRuidoYOriginales = mezclarVectores(&imagenes, &imagenesConRuido, &etiquetas);
 
 	let entradas = imagenes[0].len() as i32;
 	let salidas = etiquetas[0].len() as i32;
-	let neuronasOcultas = 2000;
+	let neuronasOcultas = 200;
 	let capasOcultas = 1;
 	let epocas = 10;
 	let tamLote = 2000;
-	let tasa = 0.05;
+	let tasa = 0.1;
 	let mut red = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, tasa);
 
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
+	// Diferentes formas de entrenar
 	//red.entrenarBackPropagationConRefuerzo(&imagenesConRuido, &etiquetas, epocas, false);
 	//red.entrenarBackPropagationConRefuerzo(&imagenes, &etiquetas, epocas, false);
 	//red.entrenarBackPropagationAdaptativo(&imagenes, &etiquetas, epocas, false);
@@ -734,9 +736,10 @@ fn main()
 	red.entrenarBackPropagationConRefuerzo(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false);
 	//red.entrenarBackPropagationLotes(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false, tamLote);
 	
+	// Guardar la red final
 	red.guardarArchivo("_final");
 
-	//red = red.leerArchivo("resultados_interesantes/0.000071773335_3_600_3_10.20porc.txt");
+	//red = red.leerArchivo("resultados_interesantes/0.0000795675_3_200_3_ruido_porc20.34.txt");
 	
 	// probando la red entrenamiento
 	let mut fallos = 0f32;
@@ -761,6 +764,10 @@ fn main()
 	let mut imagenes = tuplaImagenes.0;
 	let mut etiquetas = tuplaImagenes.1;
 	let mut fallos = 0f32;
+
+	// preparacion para escribir un archivo con las salidas
+	let mut f = File::create(&Path::new("salida.txt"));
+	let mut stream = f.unwrap();
 	for imagen in 0..imagenes.len()
 	{
 		red.ejecutar(&imagenes[imagen]);
@@ -770,6 +777,9 @@ fn main()
 		{
 			fallos = fallos + 1.0;
 		}
+
+		// escribir a fichero
+		stream.write_all( (salidaRed.to_string()).as_bytes() );
 	}
 
 	let porcentaje = (fallos / (imagenes.len() as f32)) * 100.0;
