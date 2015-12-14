@@ -209,10 +209,13 @@ impl RedNeuronal
 						let capaAnterior = capaOculta - 1;
 						for n in 0..self.capas[capaSiguiente].len()
 						{
+							errorAcumulado += self.capas[capaSiguiente][n].error;
+							/*
 							for peso in 0..self.capas[capaOculta][neuron].pesos.len()
 							{
 								errorAcumulado += self.capas[capaSiguiente][n].error * self.capas[capaOculta][neuron].pesos[peso];
 							}
+							*/
 						}
 						// Finalmente, el error del neuron sera el acumulado * derivada de la funcion para la salida de este neuron
 						self.capas[capaOculta][neuron].error = errorAcumulado * derivadaSigmoide(self.capas[capaOculta][neuron].salida);
@@ -220,7 +223,7 @@ impl RedNeuronal
 						// Una vez que tenemos el error propagado a este neuron, calculamos los nuevos pesos
 						for peso in 0..self.capas[capaOculta][neuron].pesos.len()
 						{
-							self.capas[capaOculta][neuron].pesos[peso] += self.tasaAprendizaje * self.capas[capaOculta][neuron].error * self.capas[capaAnterior][peso].salida;
+							self.capas[capaOculta][neuron].pesos[peso] += self.tasaAprendizaje * (self.capas[capaOculta][neuron].error * self.capas[capaOculta][neuron].pesos[peso]) * self.capas[capaAnterior][peso].salida;
 							if restriccion 
 							{
 								if self.capas[capaOculta][neuron].pesos[peso] > 0.5
@@ -720,26 +723,26 @@ fn main()
 
 	let entradas = imagenes[0].len() as i32;
 	let salidas = etiquetas[0].len() as i32;
-	let neuronasOcultas = 200;
+	let neuronasOcultas = 300;
 	let capasOcultas = 1;
-	let epocas = 10;
+	let epocas = 30;
 	let tamLote = 2000;
-	let tasa = 0.1;
+	let tasa = 0.01;
 	let mut red = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, tasa);
 
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
 	// Diferentes formas de entrenar
 	//red.entrenarBackPropagationConRefuerzo(&imagenesConRuido, &etiquetas, epocas, false);
 	//red.entrenarBackPropagationConRefuerzo(&imagenes, &etiquetas, epocas, false);
-	//red.entrenarBackPropagationAdaptativo(&imagenes, &etiquetas, epocas, false);
+	red.entrenarBackPropagationAdaptativo(&imagenes, &etiquetas, epocas, false);
 	//red.entrenarBackPropagationAdaptativo(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false);
-	red.entrenarBackPropagationConRefuerzo(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false);
+	//red.entrenarBackPropagationConRefuerzo(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false);
 	//red.entrenarBackPropagationLotes(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false, tamLote);
 	
 	// Guardar la red final
 	red.guardarArchivo("_final");
 
-	//red = red.leerArchivo("resultados_interesantes/0.0000795675_3_200_3_ruido_porc20.34.txt");
+	//red = red.leerArchivo("resultados_interesantes/0.06_2_10_28_porc10.2_ruido.txt");
 	
 	// probando la red entrenamiento
 	let mut fallos = 0f32;
