@@ -723,11 +723,11 @@ fn main()
 
 	let entradas = imagenes[0].len() as i32;
 	let salidas = etiquetas[0].len() as i32;
-	let neuronasOcultas = 300;
+	let neuronasOcultas = 200;
 	let capasOcultas = 1;
 	let epocas = 30;
 	let tamLote = 2000;
-	let tasa = 0.01;
+	let tasa = 0.08;
 	let mut red = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, tasa);
 
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
@@ -737,12 +737,13 @@ fn main()
 	red.entrenarBackPropagationAdaptativo(&imagenes, &etiquetas, epocas, false);
 	//red.entrenarBackPropagationAdaptativo(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false);
 	//red.entrenarBackPropagationConRefuerzo(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false);
+	//red.entrenarBackPropagationLotes(&imagenes, &etiquetas, epocas, false, tamLote);
 	//red.entrenarBackPropagationLotes(&imagesRuidoYOriginales.0, &imagesRuidoYOriginales.1, epocas, false, tamLote);
 	
 	// Guardar la red final
 	red.guardarArchivo("_final");
 
-	//red = red.leerArchivo("resultados_interesantes/0.06_2_10_28_porc10.2_ruido.txt");
+	//red = red.leerArchivo("resultados_interesantes/0.00004459667_3_600_2_10.16porc.txt");
 	
 	// probando la red entrenamiento
 	let mut fallos = 0f32;
@@ -778,6 +779,7 @@ fn main()
 		let salidaRed = encontrarMayor(red.salida().clone());
 		if salidaBuena != salidaRed
 		{
+			//println!("Red: {} != Original: {}", salidaRed, salidaBuena);
 			fallos = fallos + 1.0;
 		}
 
