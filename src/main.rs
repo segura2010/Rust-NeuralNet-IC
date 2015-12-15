@@ -236,7 +236,7 @@ impl RedNeuronal
 								}
 							}
 						} 
-						// y actualizamos la "bias"
+						// y actualizamos la "bias" (NO)
 						//self.capas[capaOculta][neuron].bias += self.tasaAprendizaje * self.capas[capaOculta][neuron].error;
 					}
 				}
@@ -401,7 +401,7 @@ impl RedNeuronal
 			println!("EPOCA {}:: Fallos: {} / Porcentaje Fallos: {}", epoca, fallos, porcentaje);
 
 			// entrenamos otra vez con los fallos pero con una tasa menor (reducida al 0.1%)
-			self.tasaAprendizaje = tasaFinal * (epoca as f32 * (1.0 - tantoPorUno));
+			self.tasaAprendizaje = tasaFinal * ((1.0 - tantoPorUno));
 			self.entrenarBackPropagation(&entradas, &salidas, 1, restriccion);
 		}
 
@@ -723,14 +723,12 @@ fn main()
 
 	let entradas = imagenes[0].len() as i32;
 	let salidas = etiquetas[0].len() as i32;
-	let neuronasOcultas = 200;
-	let capasOcultas = 0;
-	let epocas = 1000;
+	let neuronasOcultas = 256;
+	let capasOcultas = 1;
+	let epocas = 1000000;
 	let tamLote = 2000;
-	let tasa = 0.09;
+	let tasa = 0.1;
 	let mut red = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, tasa);
-
-	red.leerArchivo("resultados_interesantes/0.08_2_10__final_porc_9.23.txt");
 
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
 	// Diferentes formas de entrenar
@@ -745,7 +743,7 @@ fn main()
 	// Guardar la red final
 	red.guardarArchivo("_final");
 
-	//red = red.leerArchivo("resultados_interesantes/0.00004459667_3_600_2_10.16porc.txt");
+	//red = red.leerArchivo("resultados_interesantes/0.019734122_2_10_241_porc8.63.txt");
 	
 	// probando la red entrenamiento
 	let mut fallos = 0f32;
