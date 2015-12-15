@@ -716,19 +716,21 @@ fn main()
 	let mut imagenes = tuplaImagenes.0;
 	let mut etiquetas = tuplaImagenes.1;
 
-	// Ruido
+	/* Ruido
 	let mut imagenesConRuido = imagenes.clone();
 	ruido(&mut imagenesConRuido);
-	let mut imagesRuidoYOriginales = mezclarVectores(&imagenes, &imagenesConRuido, &etiquetas);
+	let mut imagesRuidoYOriginales = mezclarVectores(&imagenes, &imagenesConRuido, &etiquetas);*/
 
 	let entradas = imagenes[0].len() as i32;
 	let salidas = etiquetas[0].len() as i32;
 	let neuronasOcultas = 200;
-	let capasOcultas = 1;
-	let epocas = 30;
+	let capasOcultas = 0;
+	let epocas = 1000;
 	let tamLote = 2000;
-	let tasa = 0.08;
+	let tasa = 0.09;
 	let mut red = RedNeuronal::new(entradas, capasOcultas, neuronasOcultas, salidas, tasa);
+
+	red.leerArchivo("resultados_interesantes/0.08_2_10__final_porc_9.23.txt");
 
 	println!("Entrenando.. (epocas: {}, tasa aprendizaje: {})", epocas, tasa);
 	// Diferentes formas de entrenar
