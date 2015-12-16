@@ -401,7 +401,7 @@ impl RedNeuronal
 			println!("EPOCA {}:: Fallos: {} / Porcentaje Fallos: {}", epoca, fallos, porcentaje);
 
 			// entrenamos otra vez con los fallos pero con una tasa menor (reducida al 0.1%)
-			self.tasaAprendizaje = tasaFinal * ((1.0 - tantoPorUno));
+			self.tasaAprendizaje = tasaFinal * (epoca as f32 * (1.0 - tantoPorUno));
 			self.entrenarBackPropagation(&entradas, &salidas, 1, restriccion);
 		}
 
